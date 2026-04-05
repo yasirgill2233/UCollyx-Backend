@@ -1,0 +1,152 @@
+const workspaceService = require('../services/workspace.service');
+
+const create = async (req, res) => {
+  try {
+    const ownerId = req.user.id; // Auth middleware se milega
+    const { name, slug, timezone } = req.body;
+
+    const workspaceData = {
+      name,
+      slug,
+      timezone,
+      logo_url: req.file ? `/uploads/logos/${req.file.filename}` : null
+    };
+
+    const workspace = await workspaceService.createWorkspace(workspaceData, ownerId);
+
+    // Note: Invited emails ka logic yahan handle ho sakta hai (Email service call)
+    // const invitedEmails = JSON.parse(req.body.invitedEmails || "[]");
+
+    res.status(201).json({
+      success: true,
+      message: "Workspace created successfully",
+      data: workspace
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+const getMyWorkspaces = async (req, res) => {
+    try {
+        const userId = req.user.id; // Auth middleware se user id milegi
+        const data = await workspaceService.getMyWorkspaces(userId);
+        // console.log(workspaces)
+
+        res.status(200).json({
+            success: true,
+            count: data.count,
+            workspaces: data.workspaces
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Workspaces fetch karne mein masla hua",
+            error: error.message
+        });
+    }
+};
+
+
+const getWorkspaces = async (req, res) => {
+    try {
+        const userId = req.user.id; // Auth middleware se user id milegi
+        const workspaces = await workspaceService.getUserWorkspaces(userId);
+        // console.log(workspaces)
+
+        res.status(200).json({
+            success: true,
+            count: workspaces.length,
+            data: workspaces
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Workspaces fetch karne mein masla hua",
+            error: error.message
+        });
+    }
+};
+
+const joinWorkspace = async (req, res) => {
+    try {
+        const { inviteCode, workspaceId, type } = req.body; // type: 'code' or 'request'
+        const userId = req.user.id;
+
+        console.log(userId, inviteCode, workspaceId, type)
+
+        if (type === 'code') {
+            const member = await workspaceService.joinByInviteCode(userId, inviteCode);
+            return res.status(200).json({ success: true, message: "Joined successfully", data: member });
+        } else {
+            await workspaceService.sendJoinRequest(userId, workspaceId);
+            return res.status(200).json({ success: true, message: "Request sent successfully" });
+        }
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+const inviteMembers = async (req, res) => {
+    try {
+        const { workspaceSlug, emails, inviterName } = req.body;
+
+        // Validation
+        if (!workspaceSlug || !emails || !Array.isArray(emails) || emails.length === 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Workspace slug and a list of emails are required." 
+            });
+        }
+
+        // Service call
+        await workspaceService.sendBulkInvites({
+            workspaceSlug,
+            emails,
+            inviterName: inviterName || "A Team Member"
+        });
+
+        // Hum foran response bhej dete hain kyunke emails background mein ja rahi hain
+        res.status(200).json({ 
+            success: true, 
+            message: "Invitations are being processed and sent." 
+        });
+
+    } catch (error) {
+        const statusCode = error.message === "Workspace not found" ? 404 : 500;
+        res.status(statusCode).json({ 
+            success: false, 
+            message: error.message 
+        });
+    }
+};
+
+const acceptInvite = async (req, res) => {
+    try {
+        const { token, password } = req.body;
+        // const userId = req.user.id; // Protect middleware se
+
+        if (!token) {
+            return res.status(400).json({ success: false, message: "Token is required." });
+        }
+
+        const workspace = await workspaceService.acceptInvitation(token, password);
+
+        res.status(200).json({
+            success: true,
+            message: "Successfully joined the workspace!",
+            data: { slug: workspace.slug }
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = {
+    getMyWorkspaces,
+    joinWorkspace,
+    create,
+    inviteMembers,
+    acceptInvite,
+    getWorkspaces
+};
