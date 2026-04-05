@@ -21,8 +21,9 @@ const getUserWorkspaces = async (userId) => {
     ],
   });
 
-  // Sirf workspace objects ki array return karein
-  return memberships.map((m) => m.Workspace);
+  return uniqueWorkspaces = Array.from(
+  new Map(memberships.map(m => [m.Workspace.id, m.Workspace])).values()
+);
 };
 
 const getMyWorkspaces = async (userId) => {
@@ -39,8 +40,6 @@ const getMyWorkspaces = async (userId) => {
     order: [['createdAt', 'DESC']]
   });
 
-  // Sirf workspace objects ki array return karein
-  // return memberships.map((m) => m.Workspace);
   return {
         count: memberships.length,
         workspaces: memberships.map(m => ({
@@ -76,13 +75,24 @@ const joinByInviteCode = async (userId, inviteCode) => {
   });
 };
 
-// Request bhejni ke liye (Browse tab)
 const sendJoinRequest = async (userId, workspaceId) => {
   console.log(userId, workspaceId);
   const existingRequest = await JoinRequest.findOne({
     where: { user_id: userId, workspace_id: workspaceId, status: "pending" },
   });
   if (existingRequest) throw new Error("Request already sent and is pending");
+
+  const apprvoedRequest = await JoinRequest.findOne({
+    where: { user_id: userId, workspace_id: workspaceId, status: "approved" },
+  });
+
+  if (apprvoedRequest) throw new Error("Request is approved by admin please login");
+
+  const rejectedRequest = await JoinRequest.findOne({
+    where: { user_id: userId, workspace_id: workspaceId, status: "rejected" },
+  });
+
+  if (rejectedRequest) throw new Error("Request is rejected by admin");
 
   return await JoinRequest.create({
     user_id: userId,
@@ -153,8 +163,6 @@ const sendBulkInvites = async ({ workspaceSlug, emails, inviterName }) => {
     attributes: ["owner_id"],
   });
 
-  console.log("Hey There.................",workspace)
-
   if (!workspace) {
     throw new Error("Workspace not found");
   }
@@ -179,64 +187,79 @@ const sendBulkInvites = async ({ workspaceSlug, emails, inviterName }) => {
         secureToken
       );
     } catch (err) {
-      // Agar ek email fail ho, to baqi rukni nahi chahiye
       console.error(`Failed to send invite to ${email}:`, err.message);
       return null;
     }
   });
 
-  // Saari invitations ko parallel chalne dein
   await Promise.all(invitePromises);
 
   return { success: true };
 };
 
-const acceptInvitation = async (token, password) => {
-  
-  const transaction = await sequelize.transaction();
-
+const acceptInvitation = async (token, password = null) => {
+    const transaction = await sequelize.transaction();
+    console.log('Password:',password)
     try {
-        // 1. Token se invitation dhundein
-        const invite = await Invitation.findOne({ 
-            where: { token, status: 'pending' } 
-        });
+        const invite = await Invitation.findOne({ where: { token, status: 'pending' }, transaction });
+        if (!invite) throw new Error("Invite not found");
 
-        if (!invite) throw new Error("Invalid or expired invitation.");
+        let user = await User.findOne({ where: { email: invite.email }, transaction });
 
-        // 2. Check karein ke user pehle se to nahi bana hua?
-        let user = await User.findOne({ where: { email: invite.email } });
-        
         if (!user) {
-            // 3. Naya User create karein
+            // Naya user hai, password hona lazmi hai
+            if (!password) throw new Error("Password is required for new users.");
             const hashedPassword = await bcrypt.hash(password, 12);
             user = await User.create({
                 email: invite.email,
                 password: hashedPassword,
-                full_name: invite.email.split('@')[0], // Temporary name from email
+                full_name: invite.email.split('@')[0],
                 is_verified: true,
                 status: 'active'
-              }, { transaction });
-            }
-            
-        // 4. Workspace Member banayein
+            }, { transaction });
+        }
+
+        // Sirf membership add karein (Dono cases mein yehi hoga)
         await WorkspaceMember.create({
             workspace_id: invite.workspace_id,
             user_id: user.id,
             role: 'dev'
         }, { transaction });
 
-        // 5. Invitation status update karein
         await Invitation.update(
             { status: 'accepted' }, 
-            { where: { id: invite.id }, transaction }
+            { where: {token, status: 'pending' }, transaction }
         );
 
         await transaction.commit();
         return user;
     } catch (error) {
         await transaction.rollback();
+        console.log(error)
         throw error;
     }
+};
+
+const checkInviteStatus = async (token) => {
+    // 1. Pehle invite dhundein aur workspace ki details bhi saath lein
+    const invite = await Invitation.findOne({ 
+        where: { token, status: 'pending' }
+    });
+
+    if (!invite) {
+        throw new Error("Invitation link is invalid or has already been used.");
+    }
+
+    // 2. Check karein ke ye email pehle se User table mein hai?
+    const user = await User.findOne({ 
+        where: { email: invite.email },
+        attributes: ['id', 'full_name'] 
+    });
+
+    return {
+        exists: !!user, // boolean: true/false
+        email: invite.email,
+    };
 };
 
 module.exports = {
@@ -246,6 +269,7 @@ module.exports = {
   createWorkspace,
   sendBulkInvites,
   acceptInvitation,
-  getMyWorkspaces
+  getMyWorkspaces,
+  checkInviteStatus
   // baaqi functions...
 };

@@ -20,8 +20,6 @@ app.use('/api/users', userRoutes)
 app.use('/api/workspace', workspaceRoutes)
 app.use('/uploads', express.static('uploads'));
 
-
-
 app.get('/', (req, res) => {
     console.log('API is running successfully!');
     res.status(200).send('API is running successfully!');

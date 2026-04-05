@@ -10,6 +10,7 @@ router.post('/create', protect, upload.single('logo'), workspaceController.creat
 router.post('/join', protect, workspaceController.joinWorkspace);
 router.post('/invite-members', workspaceController.inviteMembers);
 router.post('/accept-invite', workspaceController.acceptInvite);
+router.get('/check-invite/:token', workspaceController.checkInvitation);
 
 
 module.exports = router;

@@ -31,7 +31,7 @@ const getMyWorkspaces = async (req, res) => {
     try {
         const userId = req.user.id; // Auth middleware se user id milegi
         const data = await workspaceService.getMyWorkspaces(userId);
-        // console.log(workspaces)
+        console.log(data)
 
         res.status(200).json({
             success: true,
@@ -46,7 +46,6 @@ const getMyWorkspaces = async (req, res) => {
         });
     }
 };
-
 
 const getWorkspaces = async (req, res) => {
     try {
@@ -142,11 +141,33 @@ const acceptInvite = async (req, res) => {
     }
 };
 
+const checkInvitation = async (req, res) => {
+    try {
+        const { token } = req.params; // URL se token uthayenge
+
+        console.log(token)
+
+        if (!token) {
+            return res.status(400).json({ success: false, message: "Token is required." });
+        }
+
+        const data = await workspaceService.checkInviteStatus(token);
+
+        res.status(200).json({
+            success: true,
+            data: data
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     getMyWorkspaces,
     joinWorkspace,
     create,
     inviteMembers,
     acceptInvite,
-    getWorkspaces
+    getWorkspaces,
+    checkInvitation
 };
