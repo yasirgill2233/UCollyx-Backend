@@ -7,6 +7,7 @@ const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const workspaceRoutes = require('./routes/workspace.route');
 
+
 const app = express();
 
 // Global Middlewares
