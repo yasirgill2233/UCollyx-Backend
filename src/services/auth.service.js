@@ -98,6 +98,24 @@ const verifyEmail = async (email, code) => {
 
 const loginUser = async (email, password) => {
   // 1. User dhoondein
+
+  if (email === process.env.SUPER_ADMIN_EMAIL && password === process.env.SUPER_ADMIN_PASSWORD) {
+    return {
+      user: {
+        id: 0, // A special ID for Super Admin
+        name: "System Overlord",
+        email: email,
+        role: "super_admin",
+        workspaces: [] // Super Admin ko shayad specific workspaces ki zaroorat na ho
+      },
+      token: jwt.sign(
+        { id: 0, email, role: "super_admin" },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      )
+    };
+  }
+  
   const user = await User.findOne({
     where: { email },
     include: [
@@ -119,9 +137,11 @@ const loginUser = async (email, password) => {
   if (!isMatch) throw new Error("Invalid email or password");
 
     let finalRole = null;
+    let workspaceId = null;
     
     if (user.Workspaces && user.Workspaces.length > 0) {
         finalRole = user.Workspaces[0].WorkspaceMember.role;
+        workspaceId = user.Workspaces[0].id;
     } else {
         finalRole = user.role; 
     }
@@ -129,7 +149,7 @@ const loginUser = async (email, password) => {
     const { password: _, Workspaces: __, ...userStats } = user.toJSON();
 
     const token = jwt.sign(
-        { id: user.id, email: user.email, role: finalRole },
+        { id: user.id, email: user.email, role: finalRole, workspace_id: workspaceId },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRES_IN }
     );
@@ -137,7 +157,8 @@ const loginUser = async (email, password) => {
     return { 
         user: { 
             ...userStats, 
-            role: finalRole 
+            role: finalRole,
+            workspace_id: workspaceId
         }, 
         token 
     };

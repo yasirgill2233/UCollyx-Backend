@@ -69,16 +69,16 @@ const getWorkspaces = async (req, res) => {
 
 const joinWorkspace = async (req, res) => {
     try {
-        const { inviteCode, workspaceId, type } = req.body; // type: 'code' or 'request'
+        const { inviteCode, workspaceId, type, role } = req.body; // type: 'code' or 'request'
         const userId = req.user.id;
 
         console.log(userId, inviteCode, workspaceId, type)
 
         if (type === 'code') {
-            const member = await workspaceService.joinByInviteCode(userId, inviteCode);
+            const member = await workspaceService.joinByInviteCode(userId, inviteCode, role);
             return res.status(200).json({ success: true, message: "Joined successfully", data: member });
         } else {
-            await workspaceService.sendJoinRequest(userId, workspaceId);
+            await workspaceService.sendJoinRequest(userId, workspaceId, role);
             return res.status(200).json({ success: true, message: "Request sent successfully" });
         }
     } catch (error) {

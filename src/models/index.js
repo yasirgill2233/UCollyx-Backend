@@ -7,6 +7,9 @@ const Tenant = require('./tenant.model')
 const WorkspaceMember = require('./workspaceMember.model')
 const JoinRequest = require('./joinRequest.model')
 const Invitation = require('./invitation.model')
+const Project = require('./project.model.js')
+const Sprint = require('./sprint.model')
+const ProjectMember = require('./projectMember.model')  
 
 const db = {};
 
@@ -20,6 +23,10 @@ db.Tenant = Tenant;
 db.WorkspaceMember = WorkspaceMember;
 db.JoinRequest = JoinRequest;
 db.Invitation = Invitation;
+
+db.Project = Project;
+db.ProjectMember = ProjectMember;
+db.Sprint = Sprint;
 
 
 Object.keys(db).forEach((modelName) => {

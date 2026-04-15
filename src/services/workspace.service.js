@@ -52,7 +52,8 @@ const getMyWorkspaces = async (userId) => {
     };
 };
 
-const joinByInviteCode = async (userId, inviteCode) => {
+const joinByInviteCode = async (userId, inviteCode, role) => {
+  console.log(role)
   const workspace = await Workspace.findOne({
     where: { invite_code: inviteCode },
   });
@@ -70,12 +71,12 @@ const joinByInviteCode = async (userId, inviteCode) => {
   return await WorkspaceMember.create({
     user_id: userId,
     workspace_id: workspace.id,
-    role: "dev", // Default role
+    role: role, // Default role
     status: "active",
   });
 };
 
-const sendJoinRequest = async (userId, workspaceId) => {
+const sendJoinRequest = async (userId, workspaceId, role) => {
   console.log(userId, workspaceId);
   const existingRequest = await JoinRequest.findOne({
     where: { user_id: userId, workspace_id: workspaceId, status: "pending" },

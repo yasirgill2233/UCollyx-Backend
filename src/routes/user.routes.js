@@ -1,13 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const userController = require('../controllers/user.controller');
 const { protect } = require('../middleware/auth.middleware');
 
-// GET /api/users/me (Sirf login users ke liye)
-router.get('/me', protect, (req, res) => {
-    res.status(200).json({
-        success: true,
-        data: req.user
-    });
-});
+router.get('/all', protect, userController.getAllUsers);
 
 module.exports = router;

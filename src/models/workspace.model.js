@@ -10,6 +10,9 @@ const Workspace = sequelize.define('Workspace', {
     name: {
         type: DataTypes.STRING(255),
         allowNull: false
+    },name: {
+        type: DataTypes.STRING(255),
+        allowNull: false
     },
     slug: {
         type: DataTypes.STRING(100),
@@ -54,6 +57,8 @@ Workspace.associate = (models) => {
     Workspace.hasMany(models.Invitation, { foreignKey: 'workspace_id'});
     // Is workspace ke liye kitni join requests pending hain?
     Workspace.hasMany(models.JoinRequest, { foreignKey: 'workspace_id'});
+
+    Workspace.hasMany(models.Project, { foreignKey: 'workspace_id' });
 };
 
 module.exports = Workspace;

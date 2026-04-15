@@ -3,12 +3,18 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 
+const fs = require('fs-extra');
+const path = require('path');
+
+const rootDir = path.join(__dirname, 'user_projects'); // User projects ka base folder
+if (!fs.existsSync(rootDir)) fs.mkdirSync(rootDir);
+
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const workspaceRoutes = require('./routes/workspace.route');
+const projectRoutes = require('./routes/project.routes');
 
 const app = express();
-
 
 // Global Middlewares
 app.use(helmet()); // Security headers ke liye
@@ -19,11 +25,151 @@ app.use(express.json()); // JSON data handle karne ke liye
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes)
 app.use('/api/workspace', workspaceRoutes)
+app.use('/api/projects', projectRoutes);
 app.use('/uploads', express.static('uploads'));
 
 app.get('/', (req, res) => {
     console.log('API is running successfully!');
     res.status(200).send('API is running successfully!');
 });
+
+
+// --- Step A: Folder and Dummy Files Creation ---
+const initializeProject = async () => {
+    try {
+        await fs.ensureDir(rootDir); // Folder banayega agar nahi hai
+        
+        // Agar folder khali hai toh dummy files banao
+        const files = await fs.readdir(rootDir);
+        if (files.length === 0) {
+            await fs.writeFile(path.join(rootDir, 'index.js'), '// Welcome to UCollyx\nconsole.log("Happy Coding!");');
+            await fs.writeFile(path.join(rootDir, 'styles.css'), 'body { background: #000; color: #fff; }');
+            console.log("Default project files created in user_projects/");
+        }
+    } catch (err) {
+        console.error("Initialization Error:", err);
+    }
+};
+
+initializeProject();
+
+
+
+// 1. Recursive function to get file tree
+const getFileTree = async (dirPath) => {
+    const stats = await fs.stat(dirPath);
+    const info = {
+        id: dirPath,
+        name: path.basename(dirPath),
+    };
+
+    if (stats.isDirectory()) {
+        info.type = 'folder';
+        const children = await fs.readdir(dirPath);
+        info.children = await Promise.all(
+            children.map(child => getFileTree(path.join(dirPath, child)))
+        );
+    } else {
+        info.type = 'file';
+    }
+    return info;
+};
+
+// 2. Endpoints
+app.get('/api/files/tree', async (req, res) => {
+    try {
+        const tree = await getFileTree(rootDir);
+        res.json(tree);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/files/content', async (req, res) => {
+    const { filePath } = req.body;
+    try {
+        // Security check: Path rootDir ke bahar na jaye
+        if (!filePath.startsWith(rootDir)) return res.status(403).send("Access Denied");
+        
+        const content = await fs.readFile(filePath, 'utf-8');
+        res.json({ content });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/files/save', async (req, res) => {
+    const { path: filePath, content } = req.body; // Key ko match kiya (path)
+
+    try {
+        // Security Check: Ensure file is within user_projects
+        if (!filePath.startsWith(rootDir)) {
+            return res.status(403).json({ error: "Access Denied: Path outside root" });
+        }
+        
+        // File write karein
+        await fs.writeFile(filePath, content, 'utf-8');
+        
+        console.log(`✅ Saved: ${path.basename(filePath)}`);
+        res.json({ message: 'File saved successfully' });
+    } catch (err) {
+        console.error("Save Error:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+// Backend: Create File or Folder
+app.post('/api/files/create', async (req, res) => {
+    const { parentPath, name, type } = req.body;
+    
+    // Mukammal path banayein
+    const fullPath = path.join(parentPath, name);
+
+    try {
+        if (type === 'folder') {
+            await fs.ensureDir(fullPath);
+        } else {
+            await fs.ensureFile(fullPath);
+        }
+        res.json({ success: true, message: `${type} created successfully` });
+    } catch (err) {
+        console.error("Creation Error:", err);
+        res.status(500).json({ error: "Could not create item" });
+    }
+});
+
+app.post('/api/files/delete', async (req, res) => {
+    const { path: itemPath } = req.body;
+    try {
+        await fs.remove(itemPath); // fs-extra folder aur file dono delete kar deta hai
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+// Backend: Ollama Autocomplete Endpoint
+app.post('/api/ai/autocomplete', async (req, res) => {
+    const { prefix, suffix } = req.body; // Monaco code ka agla aur pichla hissa bhejega
+    
+    try {
+        const response = await ollama.generate({
+            model: 'deepseek-coder:6.7b', // Chota aur tez model autocomplete ke liye behtar hai
+            prompt: `<｜fim begin｜>${prefix}<｜fim hole｜>${suffix}<｜fim end｜>`, // Fill-in-the-middle logic
+            options: {
+                num_predict: 50, // Choti suggestion taake speed tez ho
+                stop: ['\n', ';'] // Ek line ya statement par ruk jaye
+            }
+        });
+
+        res.json({ suggestion: response.response });
+    } catch (err) {
+        res.status(500).json({ error: "AI logic failed" });
+    }
+});
+
+
 
 module.exports = app;
