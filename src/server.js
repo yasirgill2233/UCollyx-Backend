@@ -101,50 +101,41 @@ io.on("connection", (socket) => {
     });
   });
 
-  // --- NEW TERMINAL LOGIC (STEP-BY-STEP) ---
-  // Har user ke liye ek separate PTY process create hoga
-  // const ptyProcess = pty.spawn(shell, [], {
-  //     name: 'xterm-color',
-  //     cols: 80,
-  //     rows: 30,
-  //     cwd: process.cwd(), // Project root directory
-  //     env: process.env
-  // });
-
-  // Jab terminal connect ho:
+  // --- NEW DOCKER TERMINAL LOGIC ---
   const ptyProcess = pty.spawn('docker', [
-        'run',
-        '-it',
-        '--rm',                     // Kaam khatam hone par container delete ho jaye
-        '-v', `${process.cwd()}/user_projects:/workspace`, // Files map karein
-        '-w', '/workspace',         // Working directory
-        'node:18-alpine',           // Image name
-        'sh'                        // Shell type
-    ], {
-        name: 'xterm-color',
-        cols: 80,
-        rows: 30,
-        env: process.env
-    });
+      'run',
+      '-it',
+      '--rm',
+      // User ke current project ki directory ko container ke /workspace se link karein
+      '-v', `${process.cwd()}:/workspace`, 
+      '-w', '/workspace',
+    //   'node:18-alpine',
+    'ucollyx-engine',
+      'sh' // Alpine mein bash nahi hota, 'sh' hota hai
+  ], {
+      name: 'xterm-color',
+      cols: 80,
+      rows: 30,
+      env: process.env
+  });
 
-  // PTY se data aaye to frontend ko bhej do
+  // Data Listeners
   ptyProcess.onData((data) => {
     socket.emit("terminal:data", data);
   });
 
-  // Frontend se input aaye to PTY mein likh do
   socket.on("terminal:write", (data) => {
     ptyProcess.write(data);
   });
 
-  // Terminal resize handle karne ke liye (Important for UI)
   socket.on("terminal:resize", ({ cols, rows }) => {
-    ptyProcess.resize(cols, rows);
+    if (cols && rows) ptyProcess.resize(cols, rows);
   });
 
   socket.on("disconnect", () => {
-    console.log("User Disconnected");
-    ptyProcess.kill(); // Cleanup: Terminal process khatam karo
+    console.log("User Disconnected:", socket.id);
+    ptyProcess.kill(); 
+
   });
 });
 
