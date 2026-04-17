@@ -1,4 +1,4 @@
-const nodemailer = require("nodemailer");
+const transporter = require("../config/mailer");
 
 const sendInviteEmail = async (
   toEmail,
@@ -7,13 +7,13 @@ const sendInviteEmail = async (
   role,
   inviteCode,
 ) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+  //   const transporter = nodemailer.createTransport({
+  //     service: "gmail",
+  //     auth: {
+  //       user: process.env.EMAIL_USER,
+  //       pass: process.env.EMAIL_PASS,
+  //     },
+  //   });
 
   // inviteEmail.js ke andar link generate karne ka sahi tareeqa:
   const inviteLink = `${process.env.FRONTEND_URL}/join-space?token=${inviteCode}`;

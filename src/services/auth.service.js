@@ -5,6 +5,7 @@ const {
   VerificationCode,
   WorkspaceMember,
   Workspace,
+  JoinRequest,
 } = require("../models");
 const sendEmail = require("../utils/email");
 
@@ -127,6 +128,13 @@ const loginUser = async (email, password) => {
     ],
   });
 
+
+const userRequest = await JoinRequest.findOne({
+        where: { user_id: user.id },
+        order: [['created_at', 'DESC']]
+    });
+
+
   if (!user) throw new Error("Invalid email or password");
 
   if (!user.is_verified) {
@@ -158,7 +166,8 @@ const loginUser = async (email, password) => {
         user: { 
             ...userStats, 
             role: finalRole,
-            workspace_id: workspaceId
+            workspace_id: workspaceId,
+            requestStatus: userRequest ? userRequest.status : 'no_request'
         }, 
         token 
     };

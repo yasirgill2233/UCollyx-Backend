@@ -23,6 +23,10 @@ const JoinRequest = sequelize.define('JoinRequest', {
         type: DataTypes.ENUM('pending', 'approved', 'rejected'),
         defaultValue: 'pending'
     },
+    requested_role: {
+        type: DataTypes.ENUM('dev', 'manager', 'qa', 'member'),
+        defaultValue: 'member'
+    },
     processed_at: {
         type: DataTypes.DATE,
         allowNull: true

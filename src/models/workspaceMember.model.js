@@ -26,7 +26,7 @@ const WorkspaceMember = sequelize.define('WorkspaceMember', {
         onDelete: 'CASCADE'
     },
     role: {
-        type: DataTypes.ENUM('manager', 'dev', 'qa','org_admin'),
+        type: DataTypes.ENUM('manager', 'dev', 'qa','org_admin','member'),
         defaultValue: 'dev'
     },
     status: {

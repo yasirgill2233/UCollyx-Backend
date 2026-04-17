@@ -11,6 +11,8 @@ router.post('/join', protect, workspaceController.joinWorkspace);
 router.post('/invite-members', workspaceController.inviteMembers);
 router.post('/accept-invite', workspaceController.acceptInvite);
 router.get('/check-invite/:token', workspaceController.checkInvitation);
+router.get('/:workspaceId/dashboard-stats', protect, workspaceController.getDashboardStats);
+router.post('/handle-join-request', protect, workspaceController.handleJoinAction);
 
 
 module.exports = router;

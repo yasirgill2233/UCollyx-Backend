@@ -5,10 +5,18 @@ const {
   sequelize,
   Invitation,
   User,
+  Project,
+  ProjectMember,
 } = require("../models");
+
+// const {  SystemAlert, ActivityLog } = require('../models');
+const { Op } = require("sequelize");
+
 const crypto = require("crypto");
-const bcrypt = require('bcryptjs');
+const bcrypt = require("bcryptjs");
 const sendInviteEmail = require("../utils/inviteEmail");
+const { request } = require("http");
+const { sendApprovalEmail } = require("../utils/sendApprovalEmail");
 
 const getUserWorkspaces = async (userId) => {
   // User jin workspaces ka member hai unki details fetch karna
@@ -21,9 +29,9 @@ const getUserWorkspaces = async (userId) => {
     ],
   });
 
-  return uniqueWorkspaces = Array.from(
-  new Map(memberships.map(m => [m.Workspace.id, m.Workspace])).values()
-);
+  return (uniqueWorkspaces = Array.from(
+    new Map(memberships.map((m) => [m.Workspace.id, m.Workspace])).values(),
+  ));
 };
 
 const getMyWorkspaces = async (userId) => {
@@ -34,26 +42,26 @@ const getMyWorkspaces = async (userId) => {
       {
         model: Workspace,
         attributes: ["id", "name", "slug", "logo_url"],
-        required: true
+        required: true,
       },
     ],
-    order: [['createdAt', 'DESC']]
+    order: [["createdAt", "DESC"]],
   });
 
   return {
-        count: memberships.length,
-        workspaces: memberships.map(m => ({
-            id: m.Workspace.id,
-            name: m.Workspace.name,
-            slug: m.Workspace.slug,
-            logo_url: m.Workspace.logo_url,
-            role: m.role // Member ka apna role (admin/dev)
-        }))
-    };
+    count: memberships.length,
+    workspaces: memberships.map((m) => ({
+      id: m.Workspace.id,
+      name: m.Workspace.name,
+      slug: m.Workspace.slug,
+      logo_url: m.Workspace.logo_url,
+      role: m.role, // Member ka apna role (admin/dev)
+    })),
+  };
 };
 
 const joinByInviteCode = async (userId, inviteCode, role) => {
-  console.log(role)
+  console.log(role);
   const workspace = await Workspace.findOne({
     where: { invite_code: inviteCode },
   });
@@ -77,7 +85,7 @@ const joinByInviteCode = async (userId, inviteCode, role) => {
 };
 
 const sendJoinRequest = async (userId, workspaceId, role) => {
-  console.log(userId, workspaceId);
+  console.log("Now Check the Role:",userId, workspaceId, role);
   const existingRequest = await JoinRequest.findOne({
     where: { user_id: userId, workspace_id: workspaceId, status: "pending" },
   });
@@ -87,7 +95,8 @@ const sendJoinRequest = async (userId, workspaceId, role) => {
     where: { user_id: userId, workspace_id: workspaceId, status: "approved" },
   });
 
-  if (apprvoedRequest) throw new Error("Request is approved by admin please login");
+  if (apprvoedRequest)
+    throw new Error("Request is approved by admin please login");
 
   const rejectedRequest = await JoinRequest.findOne({
     where: { user_id: userId, workspace_id: workspaceId, status: "rejected" },
@@ -99,6 +108,7 @@ const sendJoinRequest = async (userId, workspaceId, role) => {
     user_id: userId,
     workspace_id: workspaceId,
     status: "pending",
+    requested_role: role, // User jo role chah raha hai (dev/manager/qa/member)
   });
 };
 
@@ -185,7 +195,7 @@ const sendBulkInvites = async ({ workspaceSlug, emails, inviterName }) => {
         workspace.name,
         inviterName,
         "Developer", // Aap isay dynamic bhi bana sakte hain
-        secureToken
+        secureToken,
       );
     } catch (err) {
       console.error(`Failed to send invite to ${email}:`, err.message);
@@ -199,68 +209,240 @@ const sendBulkInvites = async ({ workspaceSlug, emails, inviterName }) => {
 };
 
 const acceptInvitation = async (token, password = null) => {
-    const transaction = await sequelize.transaction();
-    console.log('Password:',password)
-    try {
-        const invite = await Invitation.findOne({ where: { token, status: 'pending' }, transaction });
-        if (!invite) throw new Error("Invite not found");
+  const transaction = await sequelize.transaction();
+  console.log("Password:", password);
+  try {
+    const invite = await Invitation.findOne({
+      where: { token, status: "pending" },
+      transaction,
+    });
+    if (!invite) throw new Error("Invite not found");
 
-        let user = await User.findOne({ where: { email: invite.email }, transaction });
+    let user = await User.findOne({
+      where: { email: invite.email },
+      transaction,
+    });
 
-        if (!user) {
-            // Naya user hai, password hona lazmi hai
-            if (!password) throw new Error("Password is required for new users.");
-            const hashedPassword = await bcrypt.hash(password, 12);
-            user = await User.create({
-                email: invite.email,
-                password: hashedPassword,
-                full_name: invite.email.split('@')[0],
-                is_verified: true,
-                status: 'active'
-            }, { transaction });
-        }
-
-        // Sirf membership add karein (Dono cases mein yehi hoga)
-        await WorkspaceMember.create({
-            workspace_id: invite.workspace_id,
-            user_id: user.id,
-            role: 'dev'
-        }, { transaction });
-
-        await Invitation.update(
-            { status: 'accepted' }, 
-            { where: {token, status: 'pending' }, transaction }
-        );
-
-        await transaction.commit();
-        return user;
-    } catch (error) {
-        await transaction.rollback();
-        console.log(error)
-        throw error;
+    if (!user) {
+      // Naya user hai, password hona lazmi hai
+      if (!password) throw new Error("Password is required for new users.");
+      const hashedPassword = await bcrypt.hash(password, 12);
+      user = await User.create(
+        {
+          email: invite.email,
+          password: hashedPassword,
+          full_name: invite.email.split("@")[0],
+          is_verified: true,
+          status: "active",
+        },
+        { transaction },
+      );
     }
+
+    // Sirf membership add karein (Dono cases mein yehi hoga)
+    await WorkspaceMember.create(
+      {
+        workspace_id: invite.workspace_id,
+        user_id: user.id,
+        role: "dev",
+      },
+      { transaction },
+    );
+
+    await Invitation.update(
+      { status: "accepted" },
+      { where: { token, status: "pending" }, transaction },
+    );
+
+    await transaction.commit();
+    return user;
+  } catch (error) {
+    await transaction.rollback();
+    console.log(error);
+    throw error;
+  }
 };
 
 const checkInviteStatus = async (token) => {
-    // 1. Pehle invite dhundein aur workspace ki details bhi saath lein
-    const invite = await Invitation.findOne({ 
-        where: { token, status: 'pending' }
+  // 1. Pehle invite dhundein aur workspace ki details bhi saath lein
+  const invite = await Invitation.findOne({
+    where: { token, status: "pending" },
+  });
+
+  if (!invite) {
+    throw new Error("Invitation link is invalid or has already been used.");
+  }
+
+  // 2. Check karein ke ye email pehle se User table mein hai?
+  const user = await User.findOne({
+    where: { email: invite.email },
+    attributes: ["id", "full_name"],
+  });
+
+  return {
+    exists: !!user, // boolean: true/false
+    email: invite.email,
+  };
+};
+
+const fetchDashboardMetrics = async (workspaceId) => {
+  console.log("Fetching dashboard metrics for workspace ID:", workspaceId);
+  // 1. Users Metrics (Schema Tables: users, workspace_members) [cite: 4, 17]
+
+  const workspaceInfo = await Workspace.findByPk(workspaceId, {
+        attributes: ['name', 'slug', 'logo_url'] // 
+    });
+    
+  const totalUsers = await WorkspaceMember.count({
+    where: { workspace_id: workspaceId },
+  });
+
+  // Developers count karne ka sahi aur asaan tarika
+  const developers = await WorkspaceMember.count({
+    where: {
+      workspace_id: workspaceId,
+      role: "dev", // Agar role workspace_members table mein hai [cite: 19]
+    },
+  });
+
+  // Hum un projects ke IDs nikalenge jo is workspace ke hain
+    const workspaceProjects = await Project.findAll({ 
+        where: { workspace_id: workspaceId },
+        attributes: ['id']
+    });
+    const projectIds = workspaceProjects.map(p => p.id);
+
+    const managers = await ProjectMember.count({
+        distinct: true,
+        col: 'user_id',
+        where: { 
+            project_id: { [Op.in]: projectIds },
+            project_role: 'Manager' // Check karein 'M' capital hai ya small
+        }
+    });
+    
+
+  const qa = await WorkspaceMember.count({
+    where: { 
+      workspace_id: workspaceId, 
+      role: "qa" 
+    },
+  });
+
+  // 1. Pending Join Requests count 
+    const pendingRequestsCount = await JoinRequest.count({ 
+        where: { 
+            workspace_id: workspaceId, 
+            status: 'pending' 
+        } 
     });
 
-    if (!invite) {
-        throw new Error("Invitation link is invalid or has already been used.");
+    // 2. Pending Requests ki detail (List) taake dashboard par dikha sakein
+    const pendingDetails = await JoinRequest.findAll({
+        where: { workspace_id: workspaceId, status: 'pending' },
+        include: [{ model: User, attributes: ['id', 'full_name', 'email', 'avatar_url'] }],
+        order: [['processed_at', 'DESC']]
+    });
+
+  // 2. Projects Metrics (Schema Table: projects) [cite: 27]
+  const activeProjects = await Project.count({
+    where: { workspace_id: workspaceId, status: "Active" },
+  });
+  const archivedProjects = await Project.count({
+    where: { workspace_id: workspaceId, status: "Archived" },
+  });
+
+  const projectsWithManagers = await ProjectMember.findAll({
+        attributes: ['project_id'],
+        where: { project_role: 'Manager' }, // Case-sensitive: Check if it's 'Manager' or 'manager'
+        raw: true
+    });
+
+    const managerProjectIds = projectsWithManagers.map(p => p.project_id);
+
+ const withoutManager = await Project.count({
+        where: {
+            workspace_id: workspaceId,
+            id: {
+                [Op.notIn]: managerProjectIds.length > 0 ? managerProjectIds : [0] 
+            }
+        }
+    });
+
+  // 3. System Alerts & Logs (Schema Tables: system_alerts, activity_logs) [cite: 121, 97]
+  // const alertCount = await SystemAlert.count({
+  //     where: { workspace_id: workspaceId, is_resolved: false }
+  // });
+
+  // const logs = await ActivityLog.findAll({
+  //     where: { org_id: workspaceId },
+  //     limit: 5,
+  //     order: [['created_at', 'DESC']],
+  //     include: [{ model: User, as: 'actor', attributes: ['full_name'] }] // [cite: 6, 99]
+  // });
+
+  return {
+    workspace: workspaceInfo, // Ab name yahan se jayega
+    users: { 
+      total: totalUsers, 
+      pending: pendingRequestsCount, 
+      developers, 
+      managers, 
+      qa },
+    projects: {
+      active: activeProjects,
+      withoutManager,
+      archived: archivedProjects,
+    },
+    pendingList: pendingDetails,
+    // alerts: { withoutRoles: alertCount, conflicts: 0 },
+    // recentActions: logs
+  };
+};
+
+const processJoinRequest = async (requestId, action, adminId, role, fullName, email) => {
+
+  const request = await JoinRequest.findByPk(requestId);
+  if (!request) throw new Error("Join request not found");
+
+  const workspace = await Workspace.findOne({
+    where: { id: request.workspace_id },
+    attributes: ['name']
+  });
+  
+  console.log("Request",request, workspace.name);
+
+    // Status update (approved/rejected) 
+    request.status = action;
+    request.processed_at = new Date();
+    await request.save();
+
+    if (action === 'approved') {
+        // User ko workspace ka member banana 
+        await WorkspaceMember.create({
+            workspace_id: request.workspace_id,
+            user_id: request.user_id,
+            role: role, 
+            status: 'active'
+        });
+
+        await sendApprovalEmail({
+        email: email,
+        full_name: fullName,
+        workspace_name: workspace.name,
+        role: role
+    });
     }
 
-    // 2. Check karein ke ye email pehle se User table mein hai?
-    const user = await User.findOne({ 
-        where: { email: invite.email },
-        attributes: ['id', 'full_name'] 
-    });
+    // Activity log entry taake timeline par nazar aaye 
+    // await ActivityLog.create({
+    //     org_id: request.workspace_id,
+    //     actor_id: adminId,
+    //     action_type: `MEMBER_${action.toUpperCase()}`,
+    //     description: `Admin ${action} a join request for user ID: ${request.user_id}`
+    // });
 
-    return {
-        exists: !!user, // boolean: true/false
-        email: invite.email,
-    };
+    return request;
 };
 
 module.exports = {
@@ -271,6 +453,8 @@ module.exports = {
   sendBulkInvites,
   acceptInvitation,
   getMyWorkspaces,
-  checkInviteStatus
+  checkInviteStatus,
+  fetchDashboardMetrics,
+  processJoinRequest,
   // baaqi functions...
 };

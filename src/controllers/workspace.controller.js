@@ -162,6 +162,54 @@ const checkInvitation = async (req, res) => {
     }
 };
 
+const getDashboardStats = async (req, res) => {
+    try {
+        const { workspaceId } = req.params;
+
+        // Business Logic: Check if workspaceId exists or user has access
+        if (!workspaceId) {
+            return res.status(400).json({ success: false, message: "Workspace ID is required" });
+        }
+
+        // Service call to get data
+        const stats = await workspaceService.fetchDashboardMetrics(workspaceId);
+
+        // Response formatting
+        res.status(200).json({
+            success: true,
+            message: "Dashboard stats fetched successfully",
+            data: stats
+        });
+    } catch (error) {
+        // Error handling logic
+        console.error("Dashboard Controller Error:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Internal Server Error while fetching stats" 
+        });
+    }
+};
+
+const handleJoinAction = async (req, res) => {
+    try {
+        const { requestId, action, role, fullName, email } = req.body; // action: 'approved' | 'rejected'
+        const adminId = req.user.id; // Protect middleware se mil raha hai [cite: 6]
+
+        if (!['approved', 'rejected'].includes(action)) {
+            return res.status(400).json({ success: false, message: "Invalid action" });
+        }
+
+        await workspaceService.processJoinRequest(requestId, action, adminId, role, fullName, email);
+
+        res.status(200).json({
+            success: true,
+            message: `User request has been ${action} successfully.`
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 module.exports = {
     getMyWorkspaces,
     joinWorkspace,
@@ -169,5 +217,7 @@ module.exports = {
     inviteMembers,
     acceptInvite,
     getWorkspaces,
-    checkInvitation
+    checkInvitation,
+    getDashboardStats,
+    handleJoinAction
 };
