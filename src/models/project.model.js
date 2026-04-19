@@ -42,6 +42,10 @@ const Project = sequelize.define('Project', {
     current_sprint: {
         type: DataTypes.STRING(100),
         allowNull: true
+    },
+    folder_path: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 }, {
     timestamps: true,

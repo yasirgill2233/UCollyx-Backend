@@ -6,7 +6,7 @@ const morgan = require('morgan');
 const fs = require('fs-extra');
 const path = require('path');
 
-const rootDir = path.join(__dirname, 'user_projects'); // User projects ka base folder
+const rootDir = path.join(__dirname, '../user_projects'); // User projects ka base folder
 if (!fs.existsSync(rootDir)) fs.mkdirSync(rootDir);
 
 const authRoutes = require('./routes/auth.routes');
@@ -75,23 +75,35 @@ const getFileTree = async (dirPath) => {
     return info;
 };
 
-// 2. Endpoints
 app.get('/api/files/tree', async (req, res) => {
     try {
-        const tree = await getFileTree(rootDir);
+        const { projectId } = req.query;
+        const targetPath = path.join(rootDir, projectId);
+
+        console.log(`Requested tree for project: ${projectId} at path: ${targetPath}`); // Debugging ke liye
+
+        // 1. Check if it exists before trying to read it
+        if (!fs.existsSync(targetPath)) {
+            // If it doesn't exist, maybe return an empty structure instead of crashing
+            return res.json({ id: projectId, name: projectId, children: [] });
+        }
+
+        // 2. Wrap your existing tree logic in a try-catch to prevent a 500
+        const tree = await getFileTree(targetPath);
         res.json(tree);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Tree Error:", err);
+        res.status(500).json({ error: "Failed to load project tree" });
     }
 });
 
 app.post('/api/files/content', async (req, res) => {
-    const { filePath } = req.body;
+    const { path } = req.body;
     try {
         // Security check: Path rootDir ke bahar na jaye
-        if (!filePath.startsWith(rootDir)) return res.status(403).send("Access Denied");
+        if (!path.startsWith(rootDir)) return res.status(403).send("Access Denied");
         
-        const content = await fs.readFile(filePath, 'utf-8');
+        const content = await fs.readFile(path, 'utf-8');
         res.json({ content });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -121,10 +133,15 @@ app.post('/api/files/save', async (req, res) => {
 
 // Backend: Create File or Folder
 app.post('/api/files/create', async (req, res) => {
-    const { parentPath, name, type } = req.body;
+    const { projectId, parentPath, name, type } = req.body;
+
+    const basePath = path.join(rootDir, projectId);
+    const fullPath = path.join(basePath, name);
+
+    console.log(req.body, fullPath); // Debugging ke liye
     
     // Mukammal path banayein
-    const fullPath = path.join(parentPath, name);
+    // const fullPath = path.join(parentPath, name);
 
     try {
         if (type === 'folder') {
@@ -151,24 +168,24 @@ app.post('/api/files/delete', async (req, res) => {
 
 
 // Backend: Ollama Autocomplete Endpoint
-app.post('/api/ai/autocomplete', async (req, res) => {
-    const { prefix, suffix } = req.body; // Monaco code ka agla aur pichla hissa bhejega
+// app.post('/api/ai/autocomplete', async (req, res) => {
+//     const { prefix, suffix } = req.body; // Monaco code ka agla aur pichla hissa bhejega
     
-    try {
-        const response = await ollama.generate({
-            model: 'deepseek-coder:6.7b', // Chota aur tez model autocomplete ke liye behtar hai
-            prompt: `<｜fim begin｜>${prefix}<｜fim hole｜>${suffix}<｜fim end｜>`, // Fill-in-the-middle logic
-            options: {
-                num_predict: 50, // Choti suggestion taake speed tez ho
-                stop: ['\n', ';'] // Ek line ya statement par ruk jaye
-            }
-        });
+//     try {
+//         const response = await ollama.generate({
+//             model: 'deepseek-coder:6.7b', // Chota aur tez model autocomplete ke liye behtar hai
+//             prompt: `<｜fim begin｜>${prefix}<｜fim hole｜>${suffix}<｜fim end｜>`, // Fill-in-the-middle logic
+//             options: {
+//                 num_predict: 50, // Choti suggestion taake speed tez ho
+//                 stop: ['\n', ';'] // Ek line ya statement par ruk jaye
+//             }
+//         });
 
-        res.json({ suggestion: response.response });
-    } catch (err) {
-        res.status(500).json({ error: "AI logic failed" });
-    }
-});
+//         res.json({ suggestion: response.response });
+//     } catch (err) {
+//         res.status(500).json({ error: "AI logic failed" });
+//     }
+// });
 
 
 

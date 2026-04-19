@@ -13,10 +13,32 @@ const createProject = async (req, res) => {
     }
 };
 
-const getProjects = async (req, res) => {
+const getMyProjects = async (req, res) => {
+
+    // console.log(req.body)
+    // console.log(req.user)
+    try {
+        const userId = req.user.id;
+        const workspaceId = req.user.workspace_id; // Secure filtering
+
+        const projects = await projectService.getUserProjects(userId, workspaceId);
+        
+        res.status(200).json({ 
+            success: true, 
+            data: projects 
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            message: error.message 
+        });
+    }
+};
+
+const getWorkspaceProjects = async (req, res) => {
     try {
         const workspaceId = req.user.workspace_id;
-        const projects = await projectService.getAllProjects(workspaceId);
+        const projects = await projectService.getAllWorkspaceProjects(workspaceId);
 
         console.log("Projects fetched for workspace:", workspaceId, projects);
 
@@ -84,7 +106,8 @@ const handleUpdateTeam = async (req, res) => {
 
 module.exports = {
     createProject,
-    getProjects,
+    getWorkspaceProjects,
     archiveProject,
-    handleUpdateTeam
+    handleUpdateTeam,
+    getMyProjects
 };
