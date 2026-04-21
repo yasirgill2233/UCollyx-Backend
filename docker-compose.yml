@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  backend:
+    build: .
+    user: "1000:1000"
+    tty: true
+    stdin_open: true
+    volumes:
+      - .:/home/node
+    ports:
+      - "4001:4001"

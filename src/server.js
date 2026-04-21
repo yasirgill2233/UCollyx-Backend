@@ -70,7 +70,7 @@ io.on("connection", (socket) => {
 
     const ptyProcess = pty.spawn(
       "docker", [
-        "run","-it","--rm","-v",`${projectPath}:/workspace`,"-w","/workspace","ucollyx-engine","sh",
+        "run","-it","--rm","-v",`${projectPath}:/home/node`,"-w","/home/node","backend_backend","bash", // here ucollyx-engine (where our code runs) is the name of the docker image, sh is the shell inside the container
       ],{
         name: "xterm-color",
         cols: 80,

@@ -133,15 +133,13 @@ app.post('/api/files/save', async (req, res) => {
 
 // Backend: Create File or Folder
 app.post('/api/files/create', async (req, res) => {
-    const { projectId, parentPath, name, type } = req.body;
+    const { parentPath, name, type } = req.body;
 
-    const basePath = path.join(rootDir, projectId);
-    const fullPath = path.join(basePath, name);
+    console.log( "parentPath:", parentPath, "name:", name, "type:", type);
 
-    console.log(req.body, fullPath); // Debugging ke liye
-    
-    // Mukammal path banayein
-    // const fullPath = path.join(parentPath, name);
+    const fullPath = path.resolve(rootDir, parentPath, name);
+
+    console.log("Full path:",fullPath)
 
     try {
         if (type === 'folder') {
@@ -159,7 +157,7 @@ app.post('/api/files/create', async (req, res) => {
 app.post('/api/files/delete', async (req, res) => {
     const { path: itemPath } = req.body;
     try {
-        await fs.remove(itemPath); // fs-extra folder aur file dono delete kar deta hai
+        await fs.remove(itemPath);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });

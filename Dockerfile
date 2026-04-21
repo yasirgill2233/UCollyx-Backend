@@ -1,6 +1,9 @@
 # Base image lightweight rakhenge
 FROM node:20-alpine
 
+WORKDIR /home/node
+RUN chown -R node:node /home/node
+
 # Sab languages aur compilers install karenge
 RUN apk add --no-cache \
     python3 \
@@ -8,10 +11,11 @@ RUN apk add --no-cache \
     g++ \
     gcc \
     php \
-    bash
+    bash \
+    git \
+    openssh-client
 
-# Default working directory
-WORKDIR /workspace
+USER node
 
 # Container start hote hi shell khule
-CMD ["sh"]
+CMD ["bash"]
