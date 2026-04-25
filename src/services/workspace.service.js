@@ -9,7 +9,6 @@ const {
   ProjectMember,
 } = require("../models");
 
-// const {  SystemAlert, ActivityLog } = require('../models');
 const { Op } = require("sequelize");
 
 const crypto = require("crypto");
@@ -19,7 +18,6 @@ const { request } = require("http");
 const { sendApprovalEmail } = require("../utils/sendApprovalEmail");
 
 const getUserWorkspaces = async (userId) => {
-  // User jin workspaces ka member hai unki details fetch karna
   const memberships = await WorkspaceMember.findAll({
     include: [
       {
@@ -35,7 +33,6 @@ const getUserWorkspaces = async (userId) => {
 };
 
 const getMyWorkspaces = async (userId) => {
-  // User jin workspaces ka member hai unki details fetch karna
   const memberships = await WorkspaceMember.findAll({
     where: { user_id: userId },
     include: [
@@ -55,7 +52,7 @@ const getMyWorkspaces = async (userId) => {
       name: m.Workspace.name,
       slug: m.Workspace.slug,
       logo_url: m.Workspace.logo_url,
-      role: m.role, // Member ka apna role (admin/dev)
+      role: m.role,
     })),
   };
 };
@@ -68,24 +65,20 @@ const joinByInviteCode = async (userId, inviteCode, role) => {
   if (!workspace) throw new Error("Invalid invite code");
 
   console.log(userId, inviteCode, workspace.id);
-  // Check karein user pehle se member to nahi?
-  // const wid = await WorkspaceMember.findOne({ where: { workspace_id: workspace.id } });
   const existing = await WorkspaceMember.findOne({
     where: { user_id: userId, workspace_id: workspace.id },
   });
   if (existing) throw new Error("Already a member of this workspace");
 
-  // Member banayein (Default role: developer ya member)
   return await WorkspaceMember.create({
     user_id: userId,
     workspace_id: workspace.id,
-    role: role, // Default role
+    role: role,
     status: "active",
   });
 };
 
 const sendJoinRequest = async (userId, workspaceId, role) => {
-  console.log("Now Check the Role:",userId, workspaceId, role);
   const existingRequest = await JoinRequest.findOne({
     where: { user_id: userId, workspace_id: workspaceId, status: "pending" },
   });
@@ -108,12 +101,11 @@ const sendJoinRequest = async (userId, workspaceId, role) => {
     user_id: userId,
     workspace_id: workspaceId,
     status: "pending",
-    requested_role: role, // User jo role chah raha hai (dev/manager/qa/member)
+    requested_role: role,
   });
 };
 
 const createWorkspace = async (data, ownerId) => {
-  // Check if slug already exists
   const existing = await Workspace.findOne({ where: { slug: data.slug } });
   console.log(existing);
   if (existing) throw new Error("This workspace URL (slug) is already taken.");
@@ -121,7 +113,6 @@ const createWorkspace = async (data, ownerId) => {
   const transaction = await sequelize.transaction();
 
   try {
-    // 1. Create Workspace
     const workspace = await Workspace.create(
       {
         name: data.name,
@@ -134,14 +125,11 @@ const createWorkspace = async (data, ownerId) => {
       { transaction },
     );
 
-    console.log(workspace);
-
-    // 2. Add Creator as Organization Admin
     await WorkspaceMember.create(
       {
         user_id: ownerId,
         workspace_id: workspace.id,
-        role: "org_admin", // UCollyx roles ke mutabiq
+        role: "org_admin",
         status: "active",
       },
       { transaction },
@@ -153,7 +141,6 @@ const createWorkspace = async (data, ownerId) => {
     await transaction.rollback();
 
     if (data.logo_url) {
-      // Path ko project root ke mutabiq set karein
       const filePath = path.join(__dirname, "../../", data.logo_url);
 
       fs.unlink(filePath, (err) => {
@@ -167,23 +154,37 @@ const createWorkspace = async (data, ownerId) => {
 };
 
 const sendBulkInvites = async ({ workspaceSlug, emails, inviterName }) => {
-  // 1. Workspace find karein
-  const workspace = await Workspace.findOne({ where: { slug: workspaceSlug } });
-  const invitedBy = await Workspace.findOne({
-    where: { slug: workspaceSlug },
-    attributes: ["owner_id"],
-  });
+  console.log(workspaceSlug, emails, inviterName);
+
+  let workspace;
+  let invitedBy;
+  if (typeof workspaceSlug === "number") {
+    workspace = await Workspace.findOne({ where: { id: workspaceSlug } });
+    invitedBy = await Workspace.findOne({
+      where: { id: workspaceSlug },
+      attributes: ["owner_id"],
+    });
+  } else {
+    workspace = await Workspace.findOne({ where: { slug: workspaceSlug } });
+    invitedBy = await Workspace.findOne({
+      where: { slug: workspaceSlug },
+      attributes: ["owner_id"],
+    });
+  }
 
   if (!workspace) {
     throw new Error("Workspace not found");
   }
 
-  // 2. Emails send karein
-  // Hum map use kar rahe hain taake saari promises ka track rakha ja sake
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   const invitePromises = emails.map(async (email) => {
+    if (!emailRegex.test(email)) {
+      throw new Error(`Invalid email format ${email}`);
+    }
+
     try {
       const secureToken = crypto.randomBytes(32).toString("hex");
-
       await Invitation.upsert({
         workspace_id: workspace.id,
         invited_by: workspace.owner_id,
@@ -194,12 +195,11 @@ const sendBulkInvites = async ({ workspaceSlug, emails, inviterName }) => {
         email,
         workspace.name,
         inviterName,
-        "Developer", // Aap isay dynamic bhi bana sakte hain
+        "member",
         secureToken,
       );
     } catch (err) {
-      console.error(`Failed to send invite to ${email}:`, err.message);
-      return null;
+      throw new Error(`Failed to send invite to ${email}:`);
     }
   });
 
@@ -224,7 +224,6 @@ const acceptInvitation = async (token, password = null) => {
     });
 
     if (!user) {
-      // Naya user hai, password hona lazmi hai
       if (!password) throw new Error("Password is required for new users.");
       const hashedPassword = await bcrypt.hash(password, 12);
       user = await User.create(
@@ -239,12 +238,11 @@ const acceptInvitation = async (token, password = null) => {
       );
     }
 
-    // Sirf membership add karein (Dono cases mein yehi hoga)
     await WorkspaceMember.create(
       {
         workspace_id: invite.workspace_id,
         user_id: user.id,
-        role: "dev",
+        role: "member",
       },
       { transaction },
     );
@@ -264,7 +262,6 @@ const acceptInvitation = async (token, password = null) => {
 };
 
 const checkInviteStatus = async (token) => {
-  // 1. Pehle invite dhundein aur workspace ki details bhi saath lein
   const invite = await Invitation.findOne({
     where: { token, status: "pending" },
   });
@@ -273,78 +270,72 @@ const checkInviteStatus = async (token) => {
     throw new Error("Invitation link is invalid or has already been used.");
   }
 
-  // 2. Check karein ke ye email pehle se User table mein hai?
   const user = await User.findOne({
     where: { email: invite.email },
     attributes: ["id", "full_name"],
   });
 
   return {
-    exists: !!user, // boolean: true/false
+    exists: !!user,
     email: invite.email,
   };
 };
 
 const fetchDashboardMetrics = async (workspaceId) => {
   console.log("Fetching dashboard metrics for workspace ID:", workspaceId);
-  // 1. Users Metrics (Schema Tables: users, workspace_members) [cite: 4, 17]
 
   const workspaceInfo = await Workspace.findByPk(workspaceId, {
-        attributes: ['name', 'slug', 'logo_url'] // 
-    });
-    
+    attributes: ["name", "slug", "logo_url"],
+  });
+
   const totalUsers = await WorkspaceMember.count({
     where: { workspace_id: workspaceId },
   });
 
-  // Developers count karne ka sahi aur asaan tarika
   const developers = await WorkspaceMember.count({
     where: {
       workspace_id: workspaceId,
-      role: "dev", // Agar role workspace_members table mein hai [cite: 19]
+      role: "dev",
     },
   });
 
-  // Hum un projects ke IDs nikalenge jo is workspace ke hain
-    const workspaceProjects = await Project.findAll({ 
-        where: { workspace_id: workspaceId },
-        attributes: ['id']
-    });
-    const projectIds = workspaceProjects.map(p => p.id);
+  const workspaceProjects = await Project.findAll({
+    where: { workspace_id: workspaceId },
+    attributes: ["id"],
+  });
+  const projectIds = workspaceProjects.map((p) => p.id);
 
-    const managers = await ProjectMember.count({
-        distinct: true,
-        col: 'user_id',
-        where: { 
-            project_id: { [Op.in]: projectIds },
-            project_role: 'Manager' // Check karein 'M' capital hai ya small
-        }
-    });
-    
+  const managers = await ProjectMember.count({
+    distinct: true,
+    col: "user_id",
+    where: {
+      project_id: { [Op.in]: projectIds },
+      project_role: "Manager",
+    },
+  });
 
   const qa = await WorkspaceMember.count({
-    where: { 
-      workspace_id: workspaceId, 
-      role: "qa" 
+    where: {
+      workspace_id: workspaceId,
+      role: "qa",
     },
   });
 
-  // 1. Pending Join Requests count 
-    const pendingRequestsCount = await JoinRequest.count({ 
-        where: { 
-            workspace_id: workspaceId, 
-            status: 'pending' 
-        } 
-    });
+  const pendingRequestsCount = await JoinRequest.count({
+    where: {
+      workspace_id: workspaceId,
+      status: "pending",
+    },
+  });
 
-    // 2. Pending Requests ki detail (List) taake dashboard par dikha sakein
-    const pendingDetails = await JoinRequest.findAll({
-        where: { workspace_id: workspaceId, status: 'pending' },
-        include: [{ model: User, attributes: ['id', 'full_name', 'email', 'avatar_url'] }],
-        order: [['processed_at', 'DESC']]
-    });
+  const pendingDetails = await JoinRequest.findAll({
+    where: { workspace_id: workspaceId, status: "pending" },
+    include: [
+      { model: User, attributes: ["id", "full_name", "email", "avatar_url"] },
+    ],
+    order: [["processed_at", "DESC"]],
+  });
 
-  // 2. Projects Metrics (Schema Table: projects) [cite: 27]
   const activeProjects = await Project.count({
     where: { workspace_id: workspaceId, status: "Active" },
   });
@@ -353,96 +344,96 @@ const fetchDashboardMetrics = async (workspaceId) => {
   });
 
   const projectsWithManagers = await ProjectMember.findAll({
-        attributes: ['project_id'],
-        where: { project_role: 'Manager' }, // Case-sensitive: Check if it's 'Manager' or 'manager'
-        raw: true
-    });
+    attributes: ["project_id"],
+    where: { project_role: "Manager" },
+    raw: true,
+  });
 
-    const managerProjectIds = projectsWithManagers.map(p => p.project_id);
+  const managerProjectIds = projectsWithManagers.map((p) => p.project_id);
 
- const withoutManager = await Project.count({
-        where: {
-            workspace_id: workspaceId,
-            id: {
-                [Op.notIn]: managerProjectIds.length > 0 ? managerProjectIds : [0] 
-            }
-        }
-    });
-
-  // 3. System Alerts & Logs (Schema Tables: system_alerts, activity_logs) [cite: 121, 97]
-  // const alertCount = await SystemAlert.count({
-  //     where: { workspace_id: workspaceId, is_resolved: false }
-  // });
-
-  // const logs = await ActivityLog.findAll({
-  //     where: { org_id: workspaceId },
-  //     limit: 5,
-  //     order: [['created_at', 'DESC']],
-  //     include: [{ model: User, as: 'actor', attributes: ['full_name'] }] // [cite: 6, 99]
-  // });
+  const withoutManager = await Project.count({
+    where: {
+      workspace_id: workspaceId,
+      id: {
+        [Op.notIn]: managerProjectIds.length > 0 ? managerProjectIds : [0],
+      },
+    },
+  });
 
   return {
-    workspace: workspaceInfo, // Ab name yahan se jayega
-    users: { 
-      total: totalUsers, 
-      pending: pendingRequestsCount, 
-      developers, 
-      managers, 
-      qa },
+    workspace: workspaceInfo,
+    users: {
+      total: totalUsers,
+      pending: pendingRequestsCount,
+      developers,
+      managers,
+      qa,
+    },
     projects: {
       active: activeProjects,
       withoutManager,
       archived: archivedProjects,
     },
     pendingList: pendingDetails,
-    // alerts: { withoutRoles: alertCount, conflicts: 0 },
-    // recentActions: logs
   };
 };
 
-const processJoinRequest = async (requestId, action, adminId, role, fullName, email) => {
-
+const processJoinRequest = async (
+  requestId,
+  action,
+  adminId,
+  role,
+  fullName,
+  email,
+) => {
   const request = await JoinRequest.findByPk(requestId);
   if (!request) throw new Error("Join request not found");
 
   const workspace = await Workspace.findOne({
     where: { id: request.workspace_id },
-    attributes: ['name']
+    attributes: ["name"],
   });
-  
-  console.log("Request",request, workspace.name);
 
-    // Status update (approved/rejected) 
-    request.status = action;
-    request.processed_at = new Date();
-    await request.save();
+  console.log("Request", request, workspace.name);
 
-    if (action === 'approved') {
-        // User ko workspace ka member banana 
-        await WorkspaceMember.create({
-            workspace_id: request.workspace_id,
-            user_id: request.user_id,
-            role: role, 
-            status: 'active'
-        });
+  request.status = action;
+  request.processed_at = new Date();
+  await request.save();
 
-        await sendApprovalEmail({
-        email: email,
-        full_name: fullName,
-        workspace_name: workspace.name,
-        role: role
+  if (action === "approved") {
+    await WorkspaceMember.create({
+      workspace_id: request.workspace_id,
+      user_id: request.user_id,
+      role: role,
+      status: "active",
     });
+
+    await sendApprovalEmail({
+      email: email,
+      full_name: fullName,
+      workspace_name: workspace.name,
+      role: role,
+    });
+  }
+
+  return request;
+};
+
+const changeMemberRole = async (userId, newRole) => {
+  try {
+    const [updatedRows] = await WorkspaceMember.update(
+      { role: newRole },
+      { where: { user_id: userId } },
+    );
+
+    if (updatedRows === 0) {
+      throw new Error("Member not found or role unchanged");
     }
 
-    // Activity log entry taake timeline par nazar aaye 
-    // await ActivityLog.create({
-    //     org_id: request.workspace_id,
-    //     actor_id: adminId,
-    //     action_type: `MEMBER_${action.toUpperCase()}`,
-    //     description: `Admin ${action} a join request for user ID: ${request.user_id}`
-    // });
-
-    return request;
+    return { userId, role: newRole };
+  } catch (error) {
+    throw error;
+  }
 };
 
 module.exports = {
@@ -456,5 +447,5 @@ module.exports = {
   checkInviteStatus,
   fetchDashboardMetrics,
   processJoinRequest,
-  // baaqi functions...
+  changeMemberRole,
 };

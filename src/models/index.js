@@ -10,6 +10,8 @@ const Invitation = require('./invitation.model')
 const Project = require('./project.model.js')
 const Sprint = require('./sprint.model')
 const ProjectMember = require('./projectMember.model')  
+const ActivityLog = require('./activityLog.model')
+const SystemAlert = require('./systemAlert.model.js')
 
 const db = {};
 
@@ -27,6 +29,10 @@ db.Invitation = Invitation;
 db.Project = Project;
 db.ProjectMember = ProjectMember;
 db.Sprint = Sprint;
+
+db.ActivityLog = ActivityLog
+db.SystemAlert = SystemAlert
+
 
 
 Object.keys(db).forEach((modelName) => {

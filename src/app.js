@@ -13,6 +13,7 @@ const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const workspaceRoutes = require('./routes/workspace.route');
 const projectRoutes = require('./routes/project.routes');
+const gitRoute = require('./routes/gitRoute.routes');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes)
 app.use('/api/workspace', workspaceRoutes)
 app.use('/api/projects', projectRoutes);
+app.use('/api/git', gitRoute);
 app.use('/uploads', express.static('uploads'));
 
 app.get('/', (req, res) => {
@@ -163,28 +165,6 @@ app.post('/api/files/delete', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
-
-// Backend: Ollama Autocomplete Endpoint
-// app.post('/api/ai/autocomplete', async (req, res) => {
-//     const { prefix, suffix } = req.body; // Monaco code ka agla aur pichla hissa bhejega
-    
-//     try {
-//         const response = await ollama.generate({
-//             model: 'deepseek-coder:6.7b', // Chota aur tez model autocomplete ke liye behtar hai
-//             prompt: `<｜fim begin｜>${prefix}<｜fim hole｜>${suffix}<｜fim end｜>`, // Fill-in-the-middle logic
-//             options: {
-//                 num_predict: 50, // Choti suggestion taake speed tez ho
-//                 stop: ['\n', ';'] // Ek line ya statement par ruk jaye
-//             }
-//         });
-
-//         res.json({ suggestion: response.response });
-//     } catch (err) {
-//         res.status(500).json({ error: "AI logic failed" });
-//     }
-// });
-
 
 
 module.exports = app;

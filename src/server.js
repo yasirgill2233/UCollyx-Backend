@@ -8,6 +8,52 @@ const db = require("./models/index");
 const path = require("path");
 const fs = require("fs");
 
+const { execSync } = require("child_process");
+
+// Apne image name se container ID nikalne ka tareeka
+const getContainerId = () => {
+  try {
+    // 'backend_backend' tumhari image ka naam hai
+    return execSync("docker ps -q -f ancestor=backend_backend")
+      .toString()
+      .trim();
+  } catch (e) {
+    return null;
+  }
+};
+
+// git log --all --graph --pretty=format:'{"hash":"%h","parent":"%p","message":"%s","branch":"%d"}'
+
+const getGitGraphData = (projectId, callback) => {
+    const projectPath = path.join(PROJECTS_BASE_DIR, projectId);
+    
+    // --pretty format se hum JSON jaisa output mang rahe hain
+    const command = `git -C ${projectPath} log --all --graph --pretty=format:'{"hash":"%h","parent":"%p","message":"%s","refs":"%D"}'`;
+
+    exec(command, (error, stdout, stderr) => {
+        if (error) {
+            return callback(error, null);
+        }
+        
+        // Output ko lines mein split karke JSON parse karo
+        const logs = stdout.split('\n').map(line => {
+            try {
+                // Line mein se graph symbols (|, *, _) hata kar sirf JSON rakho
+                const cleanJson = line.replace(/[^\{]*(\{.*\})[^}]*/, '$1');
+                return JSON.parse(cleanJson);
+            } catch (e) {
+                return null;
+            }
+        }).filter(item => item !== null);
+
+        callback(null, logs);
+    });
+};
+
+// Spawn terminal function mein:
+const containerId = getContainerId();
+if (!containerId) throw new Error("Container is not running!");
+
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
@@ -24,14 +70,20 @@ const PROJECTS_BASE_DIR = path.join(process.cwd(), "user_projects");
 
 // Server start hone se pehle ya jahan chokidar chahiye:
 async function startFileWatcher() {
-  const chokidar = await import('chokidar'); // Dynamic import
-  const watcher = chokidar.default.watch(PROJECTS_BASE_DIR, { persistent: true });
+  const chokidar = await import("chokidar"); // Dynamic import
+  const watcher = chokidar.default.watch(PROJECTS_BASE_DIR, {
+    persistent: true,
+  });
 
-  watcher.on('all', (event, filePath) => {
+  watcher.on("all", (event, filePath) => {
     const relativePath = path.relative(PROJECTS_BASE_DIR, filePath);
     const parentFolder = path.dirname(relativePath);
-    console.log(`File ${filePath} has been ${event}`);
-    io.emit("file-tree-update", { event, path: relativePath, parent: parentFolder === '.' ? 'root' : parentFolder });
+    // console.log(`File ${filePath} has been ${event}`);
+    io.emit("file-tree-update", {
+      event,
+      path: relativePath,
+      parent: parentFolder === "." ? "root" : parentFolder,
+    });
   });
 }
 
@@ -39,8 +91,6 @@ async function startFileWatcher() {
 const shell = os.platform() === "win32" ? "powershell.exe" : "bash";
 
 io.on("connection", (socket) => {
-
-
   if (!fs.existsSync(PROJECTS_BASE_DIR)) {
     fs.mkdirSync(PROJECTS_BASE_DIR);
   }
@@ -51,6 +101,8 @@ io.on("connection", (socket) => {
 
   const spawnTerminal = (projectId) => {
     const projectPath = getProjectPath(projectId);
+
+    const containerName = "ucollyx-engine";
 
     // Safety check: kya folder exist karta hai?
     // 1. Folder check karo
@@ -68,10 +120,27 @@ io.on("connection", (socket) => {
       }
     }
 
+    const containerPath = `/home/node/user_projects/${projectId}`;
+
     const ptyProcess = pty.spawn(
-      "docker", [
-        "run","-it","--rm","-v",`${projectPath}:/home/node`,"-w","/home/node","backend_backend","bash", // here ucollyx-engine (where our code runs) is the name of the docker image, sh is the shell inside the container
-      ],{
+      "docker",
+      [
+        "run",
+        "-it",
+        "--rm",
+        "-v",
+        `${projectPath}:/home/node`,
+        "-w",
+        "/home/node",
+        "backend_backend",
+        "bash", // here ucollyx-engine (where our code runs) is the name of the docker image, sh is the shell inside the container
+        //  "exec",
+        // "-it",
+        // "-w", containerPath, // <--- Yahan container ka path do
+        // "ucollyx-engine",
+        // "bash"
+      ],
+      {
         name: "xterm-color",
         cols: 80,
         rows: 30,
@@ -81,7 +150,7 @@ io.on("connection", (socket) => {
 
     return ptyProcess;
   };
-  
+
   // const spawnTerminal = (projectId) => {
   //   const projectPath = getProjectPath(projectId);
 
@@ -112,7 +181,7 @@ io.on("connection", (socket) => {
       socket.ptyProcess.kill();
       socket.ptyProcess = null;
     }
-    
+
     const ptyProcess = spawnTerminal(projectId);
     socket.ptyProcess = ptyProcess; // Socket ke sath bind kar diya
 
@@ -120,7 +189,7 @@ io.on("connection", (socket) => {
       socket.emit("terminal:data", data);
     });
 
-    ptyProcess.on('exit', (code) => {
+    ptyProcess.on("exit", (code) => {
       socket.emit("terminal:data");
     });
   });
@@ -145,7 +214,6 @@ io.on("connection", (socket) => {
     }
     console.log("User Disconnected:", socket.id);
   });
-
 });
 
 const startServer = async () => {
@@ -154,7 +222,7 @@ const startServer = async () => {
     await db.sequelize.authenticate();
     console.log("Database Connected & Synced!");
 
-    // await db.sequelize.sync({ alter: true });
+    // await db.sequelize.sync({ force: true });
 
     server.listen(PORT, () => {
       console.log(`

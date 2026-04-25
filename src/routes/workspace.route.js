@@ -13,6 +13,7 @@ router.post('/accept-invite', workspaceController.acceptInvite);
 router.get('/check-invite/:token', workspaceController.checkInvitation);
 router.get('/:workspaceId/dashboard-stats', protect, workspaceController.getDashboardStats);
 router.post('/handle-join-request', protect, workspaceController.handleJoinAction);
+router.post('/member/:userId/role', protect, workspaceController.updateMemberRole);
 
 
 module.exports = router;

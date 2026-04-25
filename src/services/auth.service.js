@@ -15,27 +15,23 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const registerUser = async (userData) => {
   const { email, password, full_name } = userData;
 
-  // 1. Check if user already exists
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) {
     throw new Error("User with this email already exists");
   }
 
-  // 2. Hash Password
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  // 3. Create User
   const newUser = await User.create({
     email,
     full_name,
     password: hashedPassword,
-    status: "pending", // Jab tak email verify na ho
+    status: "pending",
   });
 
-  // --- OTP Generation ---
-  const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date(Date.now() + 40 * 1000);
 
   await VerificationCode.create({
     user_id: newUser.id,
@@ -47,7 +43,6 @@ const registerUser = async (userData) => {
   try {
     await sendEmail({
       email: newUser.email,
-      // email: 'sabaamina001@gmail.com',
       subject: "Verify your UCollyx Account",
       message: "Your verification code is:",
       otp: otpCode,
@@ -55,7 +50,6 @@ const registerUser = async (userData) => {
     console.log(`Real Email sent to ${newUser.email}`);
   } catch (err) {
     console.error("Email failed to send:", err.message);
-    // Error handling: Agar email na jaye to user ko batayein
     throw new Error(
       "Email could not be sent. Please check your email settings.",
     );
@@ -65,11 +59,9 @@ const registerUser = async (userData) => {
 };
 
 const verifyEmail = async (email, code) => {
-  // 1. User dhoondein
   const user = await User.findOne({ where: { email } });
   if (!user) throw new Error("User not found");
 
-  // 2. Code check karein
   const record = await VerificationCode.findOne({
     where: {
       user_id: user.id,
@@ -81,12 +73,10 @@ const verifyEmail = async (email, code) => {
 
   if (!record) throw new Error("Invalid or expired OTP");
 
-  // 3. Expiry check karein
   if (new Date() > record.expires_at) {
     throw new Error("OTP has expired");
   }
 
-  // 4. User ko verify karein aur code ko 'used' mark karein
   user.is_verified = true;
   user.status = "active";
   await user.save();
@@ -98,25 +88,26 @@ const verifyEmail = async (email, code) => {
 };
 
 const loginUser = async (email, password) => {
-  // 1. User dhoondein
-
-  if (email === process.env.SUPER_ADMIN_EMAIL && password === process.env.SUPER_ADMIN_PASSWORD) {
+  if (
+    email === process.env.SUPER_ADMIN_EMAIL &&
+    password === process.env.SUPER_ADMIN_PASSWORD
+  ) {
     return {
       user: {
-        id: 0, // A special ID for Super Admin
+        id: 0,
         name: "System Overlord",
         email: email,
         role: "super_admin",
-        workspaces: [] // Super Admin ko shayad specific workspaces ki zaroorat na ho
+        workspaces: [],
       },
       token: jwt.sign(
         { id: 0, email, role: "super_admin" },
         process.env.JWT_SECRET,
-        { expiresIn: '24h' }
-      )
+        { expiresIn: "24h" },
+      ),
     };
   }
-  
+
   const user = await User.findOne({
     where: { email },
     include: [
@@ -128,12 +119,14 @@ const loginUser = async (email, password) => {
     ],
   });
 
+  if(user?.status !== 'active'){
+    throw new Error("Your status is not active for joining")
+  }
 
-const userRequest = await JoinRequest.findOne({
-        where: { user_id: user.id },
-        order: [['created_at', 'DESC']]
-    });
-
+  const userRequest = await JoinRequest.findOne({
+    where: { user_id: user.id },
+    order: [["created_at", "DESC"]],
+  });
 
   if (!user) throw new Error("Invalid email or password");
 
@@ -144,40 +137,46 @@ const userRequest = await JoinRequest.findOne({
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) throw new Error("Invalid email or password");
 
-    let finalRole = null;
-    let workspaceId = null;
-    
-    if (user.Workspaces && user.Workspaces.length > 0) {
-        finalRole = user.Workspaces[0].WorkspaceMember.role;
-        workspaceId = user.Workspaces[0].id;
-    } else {
-        finalRole = user.role; 
-    }
+  await user.update({ last_login: new Date() });
 
-    const { password: _, Workspaces: __, ...userStats } = user.toJSON();
+  let finalRole = null;
+  let workspaceId = null;
 
-    const token = jwt.sign(
-        { id: user.id, email: user.email, role: finalRole, workspace_id: workspaceId },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN }
-    );
+  if (user.Workspaces && user.Workspaces.length > 0) {
+    finalRole = user.Workspaces[0].WorkspaceMember.role;
+    workspaceId = user.Workspaces[0].id;
+  } else {
+    finalRole = user.role;
+  }
 
-    return { 
-        user: { 
-            ...userStats, 
-            role: finalRole,
-            workspace_id: workspaceId,
-            requestStatus: userRequest ? userRequest.status : 'no_request'
-        }, 
-        token 
-    };
+  const { password: _, Workspaces: __, ...userStats } = user.toJSON();
 
+  const token = jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+      role: finalRole,
+      workspace_id: workspaceId,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN },
+  );
+
+  return {
+    user: {
+      ...userStats,
+      role: finalRole,
+      workspace_id: workspaceId,
+      requestStatus: userRequest ? userRequest.status : "no_request",
+    },
+    token,
+  };
 };
 
 const handleGoogleUser = async (googleData) => {
   const { email, full_name } = googleData;
   let user = await User.findOne({ where: { email } });
-  let isNewUser = false; // Flag for frontend
+  let isNewUser = false;
 
   if (!user) {
     isNewUser = true;
@@ -186,10 +185,10 @@ const handleGoogleUser = async (googleData) => {
       full_name,
       is_verified: true,
       status: "active",
-      password: "SOCIAL_LOGIN_USER_PENDING", // Indication ke password set nahi hua
+      password: "SOCIAL_LOGIN_USER_PENDING",
     });
   } else if (user.password === "SOCIAL_LOGIN_USER_PENDING") {
-    // Agar user pehle aaya tha lekin password set nahi kiya tha
+
     isNewUser = true;
   }
 
@@ -202,27 +201,21 @@ const handleGoogleUser = async (googleData) => {
 };
 
 const generateAndSendOTP = async (email) => {
-  // 1. Check karein ke user exists karta hai
   const user = await User.findOne({ where: { email } });
   console.log(user);
   if (!user) {
     throw new Error("User with this email does not exist.");
   }
 
-  // 2. Naya 6-digit random code generate karein
   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-  // OTP ki expiry set karein (maslan 10 minutes)
   const expiresAt = new Date(Date.now() + 10 * 60000);
 
-  // 3. Database mein OTP update ya create karein
-  // Agar pehle se koi OTP hai us user ka, to usay overwrite karein
   await VerificationCode.update(
     { code: otpCode, expires_at: expiresAt },
     { where: { user_id: user.id } },
   );
 
-  // 4. Email bhejein
   const emailData = {
     email: email,
     subject: "Verify your UCollyx Account",
@@ -235,7 +228,6 @@ const generateAndSendOTP = async (email) => {
     console.log(`Real Email sent to ${email}`);
   } catch (err) {
     console.error("Email failed to send:", err.message);
-    // Error handling: Agar email na jaye to user ko batayein
     throw new Error(
       "Email could not be sent. Please check your email settings.",
     );
@@ -243,16 +235,13 @@ const generateAndSendOTP = async (email) => {
 };
 
 const updatePassword = async (userId, newPassword) => {
-  // 1. Password ki strength check karein (Optional but recommended)
   if (!newPassword || newPassword.length < 8) {
     throw new Error("Password must be at least 8 characters long.");
   }
 
-  // 2. Hash the password
   const salt = await bcrypt.genSalt(12);
   const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-  // 3. Update in Database
   const [updatedRows] = await User.update(
     { password: hashedPassword },
     { where: { id: userId } },

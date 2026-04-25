@@ -7,7 +7,6 @@ const signup = async (req, res) => {
     try {
         const user = await authService.registerUser(req.body);
         
-        // Password response mein nahi bhejna security ki wajah se
         const { password, ...userWithoutPassword } = user.toJSON();
 
         res.status(201).json({
@@ -50,9 +49,8 @@ const login = async (req, res) => {
 
 const googleLogin = async (req, res) => {
     try {
-        const { idToken } = req.body; // Frontend se aane wala token
+        const { idToken } = req.body;
 
-        // 1. Google Token ko Verify karein
         const ticket = await client.verifyIdToken({
             idToken,
             audience: process.env.GOOGLE_CLIENT_ID,
@@ -61,7 +59,6 @@ const googleLogin = async (req, res) => {
         const payload = ticket.getPayload();
         const { email, name, sub: googleId } = payload;
 
-        // 2. Service ko call karein user handle karne ke liye
         const result = await authService.handleGoogleUser({
             email,
             full_name: name,
@@ -82,17 +79,14 @@ const resendOTP = async (req, res) => {
     try {
         const { email } = req.body;
 
-        console.log("Resend OTP request for:", email); // Debugging line 1
+        console.log("Resend OTP request for:", email);
 
         if (!email) {
             return res.status(400).json({ success: false, message: "Email is required" });
         }
 
-        // 1. Naya OTP generate karein aur DB/Cache mein update karein
-        // Note: Aapka existing logic jo register par OTP bhejta hai, wahi yahan use hoga
         const result = await authService.generateAndSendOTP(email); 
-        console.log("OTP Sent Successfully"); // Debugging line 2
-
+        console.log("OTP Sent Successfully");
         res.status(200).json({
             success: true,
             message: "A new verification code has been sent to your email."
@@ -105,7 +99,7 @@ const resendOTP = async (req, res) => {
 const updatePassword = async (req, res) => {
     try {
         const { password } = req.body;
-        const userId = req.user.id; // Yeh 'protect' middleware se aa raha hai
+        const userId = req.user.id;
 
         if (!password) {
             return res.status(400).json({ 
@@ -114,7 +108,6 @@ const updatePassword = async (req, res) => {
             });
         }
 
-        // Service call
         await authService.updatePassword(userId, password);
 
         res.status(200).json({
@@ -122,7 +115,6 @@ const updatePassword = async (req, res) => {
             message: "Password has been set successfully. Your account is now fully secured."
         });
     } catch (error) {
-        // Agar validation error hai to 400, warna 500
         const statusCode = error.message.includes("Password must") ? 400 : 500;
         res.status(statusCode).json({
             success: false,

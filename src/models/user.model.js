@@ -80,6 +80,10 @@ User.associate = (models) => {
   User.hasMany(models.Invitation, { foreignKey: "invited_by" });
   // User ki apni bheji hui join requests
   User.hasMany(models.JoinRequest, { foreignKey: "user_id" });
+
+  User.hasMany(models.ActivityLog, { foreignKey: 'user_id' });
+  User.hasMany(models.ProjectMember, { foreignKey: "user_id" });
+
 };
 
 module.exports = User;

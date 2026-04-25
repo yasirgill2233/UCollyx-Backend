@@ -27,4 +27,12 @@ const ProjectMember = sequelize.define('ProjectMember', {
   timestamps: true
 });
 
+
+// ProjectMember.js ke end mein
+ProjectMember.associate = (models) => {
+  ProjectMember.belongsTo(models.User, { foreignKey: 'user_id' });
+  ProjectMember.belongsTo(models.Project, { foreignKey: 'project_id' });
+};
+
+
 module.exports = ProjectMember;

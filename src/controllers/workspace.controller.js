@@ -2,7 +2,7 @@ const workspaceService = require('../services/workspace.service');
 
 const create = async (req, res) => {
   try {
-    const ownerId = req.user.id; // Auth middleware se milega
+    const ownerId = req.user.id; 
     const { name, slug, timezone } = req.body;
 
     const workspaceData = {
@@ -13,9 +13,6 @@ const create = async (req, res) => {
     };
 
     const workspace = await workspaceService.createWorkspace(workspaceData, ownerId);
-
-    // Note: Invited emails ka logic yahan handle ho sakta hai (Email service call)
-    // const invitedEmails = JSON.parse(req.body.invitedEmails || "[]");
 
     res.status(201).json({
       success: true,
@@ -29,7 +26,7 @@ const create = async (req, res) => {
 
 const getMyWorkspaces = async (req, res) => {
     try {
-        const userId = req.user.id; // Auth middleware se user id milegi
+        const userId = req.user.id;
         const data = await workspaceService.getMyWorkspaces(userId);
         console.log(data)
 
@@ -49,9 +46,8 @@ const getMyWorkspaces = async (req, res) => {
 
 const getWorkspaces = async (req, res) => {
     try {
-        const userId = req.user.id; // Auth middleware se user id milegi
+        const userId = req.user.id;
         const workspaces = await workspaceService.getUserWorkspaces(userId);
-        // console.log(workspaces)
 
         res.status(200).json({
             success: true,
@@ -69,7 +65,7 @@ const getWorkspaces = async (req, res) => {
 
 const joinWorkspace = async (req, res) => {
     try {
-        const { inviteCode, workspaceId, type, role } = req.body; // type: 'code' or 'request'
+        const { inviteCode, workspaceId, type, role } = req.body;
         const userId = req.user.id;
 
         console.log(userId, inviteCode, workspaceId, type)
@@ -90,7 +86,6 @@ const inviteMembers = async (req, res) => {
     try {
         const { workspaceSlug, emails, inviterName } = req.body;
 
-        // Validation
         if (!workspaceSlug || !emails || !Array.isArray(emails) || emails.length === 0) {
             return res.status(400).json({ 
                 success: false, 
@@ -98,21 +93,28 @@ const inviteMembers = async (req, res) => {
             });
         }
 
-        // Service call
         await workspaceService.sendBulkInvites({
             workspaceSlug,
             emails,
             inviterName: inviterName || "A Team Member"
         });
 
-        // Hum foran response bhej dete hain kyunke emails background mein ja rahi hain
         res.status(200).json({ 
             success: true, 
             message: "Invitations are being processed and sent." 
         });
 
     } catch (error) {
-        const statusCode = error.message === "Workspace not found" ? 404 : 500;
+        console.log(error.message)
+        console.log(error.message);
+    
+    let statusCode = 500;
+    
+    if (error.message.includes("Workspace not found")) {
+        statusCode = 404;
+    } else if (error.message.includes("Invalid email format")) {
+        statusCode = 400; // Client-side error
+    }
         res.status(statusCode).json({ 
             success: false, 
             message: error.message 
@@ -123,7 +125,6 @@ const inviteMembers = async (req, res) => {
 const acceptInvite = async (req, res) => {
     try {
         const { token, password } = req.body;
-        // const userId = req.user.id; // Protect middleware se
 
         if (!token) {
             return res.status(400).json({ success: false, message: "Token is required." });
@@ -143,7 +144,7 @@ const acceptInvite = async (req, res) => {
 
 const checkInvitation = async (req, res) => {
     try {
-        const { token } = req.params; // URL se token uthayenge
+        const { token } = req.params;
 
         console.log(token)
 
@@ -166,22 +167,18 @@ const getDashboardStats = async (req, res) => {
     try {
         const { workspaceId } = req.params;
 
-        // Business Logic: Check if workspaceId exists or user has access
         if (!workspaceId) {
             return res.status(400).json({ success: false, message: "Workspace ID is required" });
         }
 
-        // Service call to get data
         const stats = await workspaceService.fetchDashboardMetrics(workspaceId);
 
-        // Response formatting
         res.status(200).json({
             success: true,
             message: "Dashboard stats fetched successfully",
             data: stats
         });
     } catch (error) {
-        // Error handling logic
         console.error("Dashboard Controller Error:", error);
         res.status(500).json({ 
             success: false, 
@@ -192,8 +189,8 @@ const getDashboardStats = async (req, res) => {
 
 const handleJoinAction = async (req, res) => {
     try {
-        const { requestId, action, role, fullName, email } = req.body; // action: 'approved' | 'rejected'
-        const adminId = req.user.id; // Protect middleware se mil raha hai [cite: 6]
+        const { requestId, action, role, fullName, email } = req.body; 
+        const adminId = req.user.id; 
 
         if (!['approved', 'rejected'].includes(action)) {
             return res.status(400).json({ success: false, message: "Invalid action" });
@@ -210,6 +207,25 @@ const handleJoinAction = async (req, res) => {
     }
 };
 
+const updateMemberRole = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+
+    console.log(role, userId)
+
+    const result = await workspaceService.changeMemberRole(userId, role);
+    
+    return res.status(200).json({ 
+      message: "Role updated successfully", 
+      data: result 
+    });
+  } catch (error) {
+    console.error("Controller Error:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
     getMyWorkspaces,
     joinWorkspace,
@@ -219,5 +235,6 @@ module.exports = {
     getWorkspaces,
     checkInvitation,
     getDashboardStats,
-    handleJoinAction
+    handleJoinAction,
+    updateMemberRole
 };
