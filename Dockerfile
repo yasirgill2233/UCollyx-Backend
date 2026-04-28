@@ -19,3 +19,10 @@ USER node
 
 # Container start hote hi shell khule
 CMD ["bash"]
+
+
+# start and build commands
+# docker-compose up --build
+
+# run in background
+# docker-compose up -d

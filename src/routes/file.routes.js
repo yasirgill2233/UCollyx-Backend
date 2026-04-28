@@ -1,33 +1,11 @@
 const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
+const router = express.Router();
 
 const fs = require('fs-extra');
 const path = require('path');
 
 const rootDir = path.join(__dirname, '../user_projects'); // User projects ka base folder
 if (!fs.existsSync(rootDir)) fs.mkdirSync(rootDir);
-
-const authRoutes = require('./routes/auth.routes');
-const userRoutes = require('./routes/user.routes');
-const workspaceRoutes = require('./routes/workspace.route');
-const projectRoutes = require('./routes/project.routes');
-const gitRoute = require('./routes/gitRoute.routes');
-
-const app = express();
-
-app.use(helmet()); // Security headers ke liye
-app.use(cors());   // Cross-origin requests allow karne ke liye
-app.use(morgan('dev')); // Console mein requests log karne ke liye
-app.use(express.json()); // JSON data handle karne ke liye
-
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes)
-app.use('/api/workspace', workspaceRoutes)
-app.use('/api/projects', projectRoutes);
-app.use('/api/git', gitRoute);
-app.use('/uploads', express.static('uploads'));
 
 const initializeProject = async () => {
     try {
@@ -65,7 +43,7 @@ const getFileTree = async (dirPath) => {
     return info;
 };
 
-app.get('/api/files/tree', async (req, res) => {
+router.get('/tree', async (req, res) => {
     try {
         const { projectId } = req.query;
         const targetPath = path.join(rootDir, projectId);
@@ -84,7 +62,7 @@ app.get('/api/files/tree', async (req, res) => {
     }
 });
 
-app.post('/api/files/content', async (req, res) => {
+router.post('/content', async (req, res) => {
     const { path } = req.body;
     try {
         if (!path.startsWith(rootDir)) return res.status(403).send("Access Denied");
@@ -96,7 +74,7 @@ app.post('/api/files/content', async (req, res) => {
     }
 });
 
-app.post('/api/files/save', async (req, res) => {
+router.post('/save', async (req, res) => {
     const { path: filePath, content } = req.body;
 
     try {
@@ -106,7 +84,7 @@ app.post('/api/files/save', async (req, res) => {
         
         await fs.writeFile(filePath, content, 'utf-8');
         
-        console.log(`✅ Saved: ${path.basename(filePath)}`);
+        console.log(`Saved: ${path.basename(filePath)}`);
         res.json({ message: 'File saved successfully' });
     } catch (err) {
         console.error("Save Error:", err);
@@ -115,7 +93,7 @@ app.post('/api/files/save', async (req, res) => {
 });
 
 
-app.post('/api/files/create', async (req, res) => {
+router.post('/create', async (req, res) => {
     const { parentPath, name, type } = req.body;
 
     console.log( "parentPath:", parentPath, "name:", name, "type:", type);
@@ -137,7 +115,7 @@ app.post('/api/files/create', async (req, res) => {
     }
 });
 
-app.post('/api/files/delete', async (req, res) => {
+router.post('/delete', async (req, res) => {
     const { path: itemPath } = req.body;
     try {
         await fs.remove(itemPath);
@@ -147,4 +125,5 @@ app.post('/api/files/delete', async (req, res) => {
     }
 });
 
-module.exports = app;
+
+module.exports = router;

@@ -8,7 +8,7 @@ const getAllProjUsers = async (workspaceId) => {
         model: Workspace,
         through: {
           where: {
-            role: { [Op.ne]: "member" },
+            role: { [Op.ne]: "org_admin" },
             workspace_id: workspaceId,
           },
           attributes: [],

@@ -118,6 +118,8 @@ const loginUser = async (email, password) => {
       },
     ],
   });
+  
+  if (!user) throw new Error("Invalid email or password");
 
   if(user?.status !== 'active'){
     throw new Error("Your status is not active for joining")
@@ -128,7 +130,6 @@ const loginUser = async (email, password) => {
     order: [["created_at", "DESC"]],
   });
 
-  if (!user) throw new Error("Invalid email or password");
 
   if (!user.is_verified) {
     throw new Error("Please verify your email first");

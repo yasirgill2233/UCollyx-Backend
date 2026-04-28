@@ -96,7 +96,7 @@ const archiveProject = async (projectId) => {
     const project = await Project.findByPk(projectId);
 
     if (!project) {
-      return null;
+      throw new Error("Project not found");
     }
 
     project.status = "ARCHIVED";
@@ -115,7 +115,7 @@ const activeProject = async (projectId) => {
     const project = await Project.findByPk(projectId);
 
     if (!project) {
-      return null;
+      throw new Error("Project not found");
     }
 
     project.status = "ACTIVE";
@@ -148,7 +148,6 @@ const updateProjectTeam = async (projectId, members) => {
 
     return true;
   } catch (error) {
-    console.error("Service Error:", error);
     throw error;
   }
 };
