@@ -84,6 +84,40 @@ User.associate = (models) => {
   User.hasMany(models.ActivityLog, { foreignKey: 'user_id' });
   User.hasMany(models.ProjectMember, { foreignKey: "user_id" });
 
+  // 1. User ne jo channels banaye hain (Created Channels)
+  User.hasMany(models.Channel, {
+    foreignKey: 'created_by',
+  });
+
+  // 2. User jin channels ka member hai (Many-to-Many via ChannelMember)
+  User.belongsToMany(models.Channel, {
+    through: models.ChannelMember,
+    foreignKey: 'user_id',
+    otherKey: 'channel_id',
+  });
+
+  // 3. User aur ChannelMember ka direct link
+  User.hasMany(models.ChannelMember, {
+    foreignKey: 'user_id',
+  });
+
+  // 4. User ke bheje hue messages (Sent Messages)
+  User.hasMany(models.Message, {
+    foreignKey: 'sender_id',
+    as: 'SentMessages'
+  });
+
+  // 5. User ko receive hone wale Direct Messages (Received DMs)
+  User.hasMany(models.Message, {
+    foreignKey: 'receiver_id',
+    as: 'ReceivedMessages'
+  });
+
+  // 6. User ki notifications (Received Notifications)
+  User.hasMany(models.Notification, {
+    foreignKey: 'recipient_id',
+  });
+
 };
 
 module.exports = User;

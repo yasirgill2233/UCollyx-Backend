@@ -60,8 +60,25 @@ const updateUserStatus = async (userId, newStatus) => {
   );
 };
 
+
+const updateProfile = async (userId, data) => {
+  // 1. User find karein
+  const user = await User.findByPk(userId);
+  if (!user) throw new Error('User not found');
+
+  // 2. Data update karein
+  if (data.full_name) user.full_name = data.full_name;
+  if (data.phone) user.phone = data.phone;
+  if (data.avatar_url) user.avatar_url = data.avatar_url;
+
+  await user.save();
+
+  return user;
+};
+
 module.exports = {
   getAllProjUsers,
   getAllUsers,
-  updateUserStatus
+  updateUserStatus,
+  updateProfile
 };

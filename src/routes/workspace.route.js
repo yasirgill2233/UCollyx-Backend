@@ -14,6 +14,7 @@ router.get('/check-invite/:token', workspaceController.checkInvitation);
 router.get('/:workspaceId/dashboard-stats', protect, workspaceController.getDashboardStats);
 router.post('/handle-join-request', protect, workspaceController.handleJoinAction);
 router.post('/member/:userId/role', protect, workspaceController.updateMemberRole);
+router.get('/members', protect, workspaceController.getMembersForDM);
 
 
 module.exports = router;

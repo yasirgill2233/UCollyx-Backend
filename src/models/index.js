@@ -13,6 +13,11 @@ const ProjectMember = require('./projectMember.model')
 const ActivityLog = require('./activityLog.model')
 const SystemAlert = require('./systemAlert.model.js')
 
+const Channel = require('./channel.model.js')
+const ChannelMember = require('./channelMember.model.js')
+const Message = require('./message.model.js')
+const Notification = require('./notification.model.js')
+
 const db = {};
 
 db.Sequelize = require('sequelize');
@@ -32,6 +37,11 @@ db.Sprint = Sprint;
 
 db.ActivityLog = ActivityLog
 db.SystemAlert = SystemAlert
+
+db.Channel = Channel;
+db.ChannelMember = ChannelMember;
+db.Message = Message;
+db.Notification = Notification;
 
 
 

@@ -436,6 +436,24 @@ const changeMemberRole = async (userId, newRole) => {
   }
 };
 
+const getWorkspaceMembers = async (workspaceId, currentUserId) => {
+  // 1. Workspace ke sare members ki IDs fetch karein
+  const members = await WorkspaceMember.findAll({
+    where: {
+      workspace_id: workspaceId
+    },
+    include: [
+      {
+        model: User,
+        attributes: ['id', 'full_name', 'email', 'status','avatar_url']
+      }
+    ]
+  });
+
+  // Extract only user data from the members array
+  return members
+};
+
 module.exports = {
   getUserWorkspaces,
   joinByInviteCode,
@@ -448,4 +466,5 @@ module.exports = {
   fetchDashboardMetrics,
   processJoinRequest,
   changeMemberRole,
+  getWorkspaceMembers
 };

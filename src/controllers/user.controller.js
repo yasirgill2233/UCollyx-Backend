@@ -92,9 +92,50 @@ const logout = async (req, res) => {
   }
 };
 
+
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; // Logged-in user ID from auth middleware
+    const { full_name, phone } = req.body;
+    
+    let avatarUrl = null;
+    if (req.file) {
+      // Server par uploaded file ka URL path banayein
+      avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    }
+
+    const updateData = {
+      full_name,
+      phone,
+      ...(avatarUrl && { avatar_url: avatarUrl }) // Sirf tab add karein jab image upload hui ho
+    };
+
+    const updatedUser = await userService.updateProfile(userId, updateData);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        id: updatedUser.id,
+        full_name: updatedUser.full_name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        avatar_url: updatedUser.avatar_url
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(400).json({
+      success: false,
+      message: err.message || 'Error updating profile'
+    });
+  }
+};
+
 module.exports = {
   getProjUsers,
   getAllUsers,
   toggleUserStatus,
-  logout
+  logout,
+  updateProfile
 };

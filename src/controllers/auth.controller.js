@@ -112,7 +112,7 @@ const updatePassword = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: "Password has been set successfully. Your account is now fully secured."
+            message: "Password has been changed successfully"
         });
     } catch (error) {
         const statusCode = error.message.includes("Password must") ? 400 : 500;

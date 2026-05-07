@@ -5,7 +5,8 @@ const createProject = async (req, res) => {
     console.log("Hey................",req.body);
     try {
         const workspaceId = req.user.workspace_id;
-        const project = await projectService.createProject(req.body, workspaceId);
+        const creatorId = req.user.id;
+        const project = await projectService.createProject(req.body, workspaceId, creatorId);
         
         res.status(201).json({ success: true, data: project });
     } catch (error) {

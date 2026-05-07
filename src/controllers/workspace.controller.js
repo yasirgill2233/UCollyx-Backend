@@ -226,6 +226,25 @@ const updateMemberRole = async (req, res) => {
   }
 };
 
+const getMembersForDM = async (req, res) => {
+    console.log("Fetching DM members for workspace:", req.user.workspace_id, req.user.id);
+  try {
+    const workspaceId = req.user.workspace_id;
+    const currentUserId = req.user.id;
+
+
+    const members = await workspaceService.getWorkspaceMembers(workspaceId, currentUserId);
+
+    return res.status(200).json({
+      success: true,
+      data: members
+    });
+  } catch (error) {
+    console.error("Fetch DM members error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
     getMyWorkspaces,
     joinWorkspace,
@@ -236,5 +255,6 @@ module.exports = {
     checkInvitation,
     getDashboardStats,
     handleJoinAction,
-    updateMemberRole
+    updateMemberRole,
+    getMembersForDM
 };

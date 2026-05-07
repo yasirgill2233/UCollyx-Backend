@@ -1,13 +1,28 @@
-const { Project, ProjectMember, User, sequelize } = require("../models");
+const { Project, ProjectMember, User, sequelize, Channel, ChannelMember } = require("../models");
 const fs = require("fs-extra");
 const path = require("path");
 const { Op } = require('sequelize'); 
 
 const rootDir = path.join(__dirname, "../user_projects");
 
-const createProject = async (projectData, workspaceId) => {
+const createProject = async (projectData, workspaceId, creatorId) => {
   const t = await sequelize.transaction();
   console.log("Check is there any role", projectData);
+
+  const existingProject = await Project.findOne({
+    where: {
+      workspace_id: workspaceId,
+      name: projectData.name.trim()
+    }
+  });
+
+  if (existingProject) {
+    // Agar project already exist karta hai toh error throw karein
+    const error = new Error('A project with this name already exists in your workspace');
+    error.status = 400; // Bad request status
+    throw error;
+  }
+  
   try {
     const code = `PROJ-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
     const slug =
@@ -36,6 +51,35 @@ const createProject = async (projectData, workspaceId) => {
           project_role: "Member",
         },
         { transaction: t },
+      );
+    }
+
+
+    // 4. Create Channel if createChannel is true
+    if (projectData.createChannel) {
+      // Create clean channel name (e.g. #alpha-project)
+      const channelName = `#${projectData.name.toLowerCase().replace(/[^a-zA-Z0-9]+/g, "-")}`;
+
+      const channel = await Channel.create(
+        {
+          name: channelName,
+          description: `Discussion channel for project: ${projectData.name}`,
+          type: "public",
+          is_private: false,
+          created_by: creatorId,
+        },
+        { transaction: t }
+      );
+
+      // Jisne project banaya, usko channel mein as an 'admin' join karayein
+      await ChannelMember.create(
+        {
+          channel_id: channel.id,
+          user_id: creatorId,
+          role_in_channel: "admin",
+          is_muted: false,
+        },
+        { transaction: t }
       );
     }
 
