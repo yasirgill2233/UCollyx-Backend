@@ -120,7 +120,7 @@ io.on("connection", (socket) => {
         `${projectPath}:/home/node`,
         "-w",
         "/home/node",
-        "backend_backend",
+        "ucollyx-engine",
         "bash",
       ],
       {
