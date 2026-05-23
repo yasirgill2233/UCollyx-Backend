@@ -34,6 +34,7 @@ const getAllUsers = async (req, res) => {
       return {
         id: user.id,
         name: user.full_name,
+        avatar_url: user.avatar_url,
         email: user.email,
         joined: user.created_at,
         role: member.role,

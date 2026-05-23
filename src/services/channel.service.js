@@ -105,8 +105,21 @@ const addUserToChannel = async (channelId, userId, role = 'member') => {
   });
 };
 
+const fetchMembers = async (channelId) => {
+  return await ChannelMember.findAll({
+    where: { channel_id: channelId },
+    include: [
+      {
+        model: User,
+        attributes: ['id', 'full_name', 'email', 'avatar_url', 'status', "created_at", "updated_at",]
+      }
+    ]
+  });
+};
+
 module.exports = {
   createChannel,
   getUserChannels,
-  addUserToChannel
+  addUserToChannel,
+  fetchMembers
 };

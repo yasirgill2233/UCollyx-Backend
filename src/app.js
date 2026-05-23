@@ -15,7 +15,11 @@ const workspaceRoutes = require('./routes/workspace.route');
 const projectRoutes = require('./routes/project.routes');
 const channelRoutes = require('./routes/channel.routes');
 const messageRoutes = require('./routes/message.routes');
+const meetingRoutes = require('./routes/meeting.routes');
 const notificationRoutes = require('./routes/notification.routes');
+const taskRoute = require('./routes/task.routes');
+const issueRoute = require('./routes/issue.routes');
+const teamRoute = require('./routes/team.routes');
 const gitRoute = require('./routes/gitRoute.routes');
 
 const app = express();
@@ -31,14 +35,20 @@ app.use('/api/workspace', workspaceRoutes)
 app.use('/api/projects', projectRoutes);
 app.use('/api/channels', channelRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/meetings', meetingRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/tasks', taskRoute);
+app.use('/api/team', teamRoute);
+app.use('/api/issues', issueRoute);
 app.use('/api/git', gitRoute);
 // Avatars folder static mapping
-app.use('/uploads/avatars', express.static(path.join(__dirname, '../uploads/avatars')));
 
 // Logos folder static mapping
+app.use('/uploads/avatars', express.static(path.join(__dirname, '../uploads/avatars')));
 app.use('/uploads/logos', express.static(path.join(__dirname, '../uploads/logos')));
+app.use('/uploads/audio', express.static(path.join(__dirname, '../uploads/audio')));
 app.use('/uploads/attachments', express.static(path.join(__dirname, '../uploads/attachments')));
+app.use('/uploads/issues', express.static(path.join(__dirname, '../uploads/issues')));
 
 const initializeProject = async () => {
     try {

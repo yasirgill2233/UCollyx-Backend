@@ -12,6 +12,8 @@ const validate = require('../middleware/validate.middleware');
 router.get('/get', protect, projectController.getWorkspaceProjects);
 router.get('/my-projects', protect, projectController.getMyProjects);
 router.post('/create', protect, validate(createProjectSchema), strictLimiter, projectController.createProject);
+router.get('/details', protect, projectController.getProjectDetails);
+router.get('/manager-portfolio', protect, projectController.getManagerPortfolio);
 router.patch('/:id/archive', protect, projectController.archiveProject);
 router.patch('/:id/active', protect, projectController.activeProject);
 router.post('/:id/team', protect, projectController.handleUpdateTeam);

@@ -16,7 +16,19 @@ const SystemAlert = require('./systemAlert.model.js')
 const Channel = require('./channel.model.js')
 const ChannelMember = require('./channelMember.model.js')
 const Message = require('./message.model.js')
-const Notification = require('./notification.model.js')
+const Notification = require('./notification.model.js');
+const Meeting = require('./meeting.model.js');
+const MeetingMember = require('./meetingMember.model.js');
+
+const Task = require('./task.model.js');
+const TaskAssignee = require('./taskAssignee.model.js');
+const Subtask = require('./subTask.model.js');
+const TaskComment = require('./taskComment.model.js');
+const Epic = require('./epic.model.js');
+
+const Issue = require('./issue.model.js');
+const IssueComment = require('./issueComment.model.js');
+const IssueAttachment = require('./issueAttachment.model.js');
 
 const db = {};
 
@@ -42,6 +54,19 @@ db.Channel = Channel;
 db.ChannelMember = ChannelMember;
 db.Message = Message;
 db.Notification = Notification;
+
+db.Meeting = Meeting;
+db.MeetingMember = MeetingMember;
+
+db.Task = Task;
+db.TaskAssignee = TaskAssignee;
+db.Subtask = Subtask;
+db.TaskComment = TaskComment;
+db.Epic = Epic;
+
+db.Issue = Issue;
+db.IssueComment = IssueComment;
+db.IssueAttachment = IssueAttachment;
 
 
 

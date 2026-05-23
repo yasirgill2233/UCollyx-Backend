@@ -5,6 +5,7 @@ const { sequelize } = require("../config/db");
 const SystemAlert = sequelize.define(
   "SystemAlert",
   {
+    
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     workspace_id: { type: DataTypes.INTEGER, allowNull: false },
     message: { type: DataTypes.TEXT, allowNull: false },

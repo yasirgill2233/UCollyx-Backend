@@ -8,7 +8,7 @@ const getChannelMessages = async (channelId) => {
       {
         model: User,
         as: "Sender",
-        attributes: ["id", "full_name", "email", "status","avatar_url","created_at","updated_at"],
+        attributes: ["id", "full_name", "email", "status", "avatar_url", "created_at", "updated_at"],
       },
     ],
     order: [["created_at", "ASC"]],
@@ -140,9 +140,76 @@ const getUserConversations = async (userId) => {
   });
 };
 
+// Call start karne ki logic
+const createCallMessage = async (data) => {
+    return await Message.create({
+        sender_id: data.sender_id,
+        channel_id: data.channel_id || null,
+        receiver_id: data.receiver_id || null,
+        type: 'call',
+        content: data.content || 'Video Meeting',
+        call_status: 'active',
+        sent_at: new Date()
+    });
+};
+
+// Call end karke duration save karne ki logic
+const finalizeCall = async (messageId) => {
+    const message = await Message.findByPk(messageId);
+    
+    if (!message || message.type !== 'call') {
+        throw new Error("Call record not found");
+    }
+
+    const endTime = new Date();
+    const startTime = new Date(message.sent_at);
+    // Calculation: (End - Start) / 1000 to get seconds
+    const durationInSeconds = Math.floor((endTime - startTime) / 1000);
+
+    return await message.update({
+        call_status: 'ended',
+        call_ended_at: endTime,
+        call_duration: durationInSeconds
+    });
+};
+
+// Schedule logic
+const scheduleCallMessage = async (data) => {
+  console.log(data)
+    return await Message.create({
+        sender_id: data.sender_id,
+        channel_id: data.channel_id || null,
+        receiver_id: data.receiver_id || null,
+        type: 'call',
+        content: data.content,
+        call_status: 'scheduled',
+        scheduled_at: data.scheduled_at // Ensure frontend sends ISO format
+    });
+};
+
+// Function to update meeting status (e.g., from scheduled to active)
+const updateMeetingStatus = async (messageId, status) => {
+    const message = await Message.findByPk(messageId);
+    
+    if (!message || message.type !== 'call') {
+        throw new Error("Meeting record not found");
+    }
+
+    return await message.update({ 
+        call_status: status,
+        // Agar status active ho raha hai, to sent_at ko current time set kr dain
+        // taake duration sahi calculate ho sakay end pr
+        ...(status === 'active' ? { sent_at: new Date() } : {})
+    });
+};
+
 module.exports = {
   getChannelMessages,
   getDMMessages,
   saveMessage,
   getUserConversations,
+  finalizeCall,
+  createCallMessage,
+  scheduleCallMessage,
+  updateMeetingStatus
 };

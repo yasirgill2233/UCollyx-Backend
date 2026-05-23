@@ -32,7 +32,7 @@ const getAllUsers = async (workspaceId) => {
     include: [
       {
         model: User,
-        attributes: ["id", "full_name", "email", "status", "last_login", "created_at"],
+        attributes: ["id", "full_name", "email", "status", "last_login", "created_at","avatar_url"],
         include: [{
           model: ProjectMember,
           include: [{ model: Project, attributes: ['name'] }]

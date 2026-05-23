@@ -101,9 +101,67 @@ const getConversations = async (req, res) => {
   }
 };
 
+
+const startCall = async (req, res) => {
+    try {
+        const callData = { ...req.body, sender_id: req.user.id };
+        const message = await messageService.createCallMessage(callData);
+        
+        // TODO: Emit socket event here for real-time update
+        // io.to(callData.channel_id).emit('new_message', message);
+
+        res.status(201).json({ success: true, data: message });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const endCall = async (req, res) => {
+    try {
+        const { messageId } = req.params;
+        const updatedMessage = await messageService.finalizeCall(messageId);
+        
+        res.status(200).json({ success: true, data: updatedMessage });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const scheduleCall = async (req, res) => {
+    try {
+        const scheduleData = { ...req.body, sender_id: req.user.id };
+        const message = await messageService.scheduleCallMessage(scheduleData);
+        
+        res.status(201).json({ success: true, data: message });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+const updateStatus = async (req, res) => {
+    try {
+        const { messageId } = req.params;
+        const { status } = req.body;
+        
+        const updatedMessage = await messageService.updateMeetingStatus(messageId, status);
+        
+        // TODO: Socket.io emit krain taake real-time UI update ho
+        // io.emit('meeting_status_changed', updatedMessage);
+
+        res.status(200).json({ success: true, data: updatedMessage });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+
 module.exports = {
   getChannelMessages,
   getDMMessages,
   sendMessage,
   getConversations,
+  startCall,
+  endCall,
+  scheduleCall,
+  updateStatus
 };

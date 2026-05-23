@@ -1,57 +1,3 @@
-// const multer = require('multer');
-// const path = require('path');
-// const fs = require('fs');
-
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     let folder = 'uploads/'; // Default folder
-
-//     // 1. Check karein ke file ka fieldname kya ha
-//     if (file.fieldname === 'avatar') {
-//       folder = 'uploads/avatars/';
-//     } else if (file.fieldname === 'logo') {
-//       folder = 'uploads/logos/';
-//     }
-
-//     // 2. Agar folder manually nahi bana hua, to node usay khud create kar le
-//     if (!fs.existsSync(folder)) {
-//       fs.mkdirSync(folder, { recursive: true });
-//     }
-
-//     cb(null, folder);
-//   },
-//   filename: (req, file, cb) => {
-//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-//     // Filename prefix bhi dynamic rakh saktay hain
-//     const prefix = file.fieldname === 'avatar' ? 'avatar' : 'logo';
-//     cb(null, `${prefix}-${uniqueSuffix}${path.extname(file.originalname)}`);
-//   }
-// });
-
-// // File filter (Optional: Sirf images allow karne k liye)
-// const fileFilter = (req, file, cb) => {
-//   const allowedTypes = /jpeg|jpg|png/;
-//   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-//   const mimetype = allowedTypes.test(file.mimetype);
-
-//   if (extname && mimetype) {
-//     cb(null, true);
-//   } else {
-//     cb(new Error('Only JPEG, JPG, and PNG files are allowed!'), false);
-//   }
-// };
-
-// const upload = multer({
-//   storage: storage,
-//   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB Limit
-//   fileFilter: fileFilter
-// });
-
-// module.exports = upload;
-
-
-
-
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -67,6 +13,9 @@ const storage = multer.diskStorage({
     } else if (file.fieldname === 'attachments') {
       // Chat attachments ke liye alag folder
       folder = 'uploads/attachments/';
+    } else if (file.fieldname === 'issues') {
+      // Chat attachments ke liye alag folder
+      folder = 'uploads/issues/';
     }
 
     if (!fs.existsSync(folder)) {

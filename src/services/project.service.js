@@ -1,4 +1,4 @@
-const { Project, ProjectMember, User, sequelize, Channel, ChannelMember } = require("../models");
+const { Project, ProjectMember, User, sequelize, Channel, ChannelMember, Task } = require("../models");
 const fs = require("fs-extra");
 const path = require("path");
 const { Op } = require('sequelize'); 
@@ -131,7 +131,18 @@ const getUserProjects = async (userId, workspaceId) => {
         where: {
             workspace_id: workspaceId,
             id: { [Op.in]: projectIds }
+        },
+        include: [
+      {
+        model: User,
+        as:'members',
+        // where: { id: userId }, // Taake array mein sirf is user ka data hi select ho kar aaye
+        attributes: ["id", "full_name", "avatar_url"],
+        through: {
+          attributes: [] // Agar junction table se project_role bhi chahiye ho
         }
+      }
+    ],
     });
 };
 
@@ -196,11 +207,121 @@ const updateProjectTeam = async (projectId, members) => {
   }
 };
 
+
+const fetchManagerPortfolio = async (managerId) => {
+  const portfolioData = await Project.findAll({
+    attributes: [
+      "id",
+      "name",
+      "status",
+      
+      [
+        sequelize.literal(`
+          COALESCE(
+            ROUND(
+              (COUNT(CASE WHEN Tasks.status = 'done' THEN 1 END) * 100.0) / NULLIF(COUNT(Tasks.id), 0)
+            ), 0
+          )
+        `),
+        "progress"
+      ],
+      
+      [
+        sequelize.literal(`
+          CONCAT(
+            COUNT(CASE WHEN Tasks.status = 'done' THEN 1 END), 
+            '/', 
+            COUNT(Tasks.id)
+          )
+        `),
+        "tasksCount"
+      ],
+      
+      [
+        sequelize.literal(`
+          COUNT(CASE WHEN Tasks.priority = 'High' AND Tasks.status != 'done' THEN 1 END)
+        `),
+        "redCards"
+      ],
+      
+      // 📊 4. Micro status segment values
+      [sequelize.literal(`COUNT(CASE WHEN Tasks.status = 'todo' THEN 1 END)`), "todoCount"],
+      [sequelize.literal(`COUNT(CASE WHEN Tasks.status = 'inprogress' THEN 1 END)`), "inprogressCount"],
+      [sequelize.literal(`COUNT(CASE WHEN Tasks.status = 'blocked' THEN 1 END)`), "blockedCount"],
+      [sequelize.literal(`COUNT(CASE WHEN Tasks.status = 'done' THEN 1 END)`), "doneCount"]
+    ],
+    include: [
+      {
+        model: Task,
+        attributes: [], // Output clean rakhne ke liye tasks metadata empty rakha
+        required: false
+      }
+    ],
+    // Filtering logic (Optional: Agar aap chahein ke manager ko sirf uske links dikhein)
+    where: { manager_id: 1 }, 
+    group: ["Project.id"],
+    order: [["createdAt", "DESC"]]
+  });
+
+  return portfolioData;
+};
+
+// const fetchProjectFullDetails = async (projectId) => {
+//   // 1. Basic Stats & Project Info
+//   const project = await Project.findByPk(projectId, {
+//     attributes: [
+//       'id', 'name', 'status', 'start_date', 'end_date',
+//       [Sequelize.literal(`(SELECT COUNT(*) FROM Tasks WHERE Tasks.project_id = Project.id AND Tasks.status = 'done') * 100 / NULLIF((SELECT COUNT(*) FROM Tasks WHERE Tasks.project_id = Project.id), 0)`), 'progress']
+//     ]
+//   });
+
+//   // 2. Aggregate Task Counts
+//   const counts = await Task.findAll({
+//     where: { project_id: projectId },
+//     attributes: [
+//       'status',
+//       [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
+//     ],
+//     group: ['status']
+//   });
+
+//   // 3. Fetch Recent Risks/Red Cards
+//   const risks = await Risk.findAll({
+//     where: { project_id: projectId },
+//     limit: 5,
+//     order: [['createdAt', 'DESC']]
+//   });
+
+//   // 4. Fetch Recent Deployments
+//   const deployments = await Deployment.findAll({
+//     where: { project_id: projectId },
+//     limit: 5,
+//     order: [['createdAt', 'DESC']]
+//   });
+
+//   // 5. Team Load (Optional: Join with Users)
+//   const teamLoad = await Task.findAll({
+//     where: { project_id: projectId, status: ['todo', 'inprogress'] },
+//     attributes: ['assignedTo', [Sequelize.fn('COUNT', Sequelize.col('id')), 'taskCount']],
+//     group: ['assignedTo']
+//   });
+
+//   return {
+//     ...project.toJSON(),
+//     counts,
+//     risks,
+//     deployments,
+//     teamLoad
+//   };
+// };
+
 module.exports = {
   createProject,
   getAllWorkspaceProjects,
   archiveProject,
   updateProjectTeam,
   getUserProjects,
-  activeProject
+  activeProject,
+  fetchManagerPortfolio,
+  // fetchProjectFullDetails
 };

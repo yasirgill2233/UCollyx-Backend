@@ -15,4 +15,9 @@ router.get('/dm/:receiverId', protect, messageController.getDMMessages);
 router.post('/send', protect, upload.array('attachments', 5), messageController.sendMessage);
 router.get('/conversations', protect, messageController.getConversations);
 
+router.post('/start-call', protect, messageController.startCall);
+router.patch('/end-call/:messageId', protect, messageController.endCall);
+router.post('/schedule-call', protect, messageController.scheduleCall);
+router.patch('/update-status/:messageId', protect, messageController.updateStatus);
+
 module.exports = router;

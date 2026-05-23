@@ -48,14 +48,14 @@ const sendMessage = async (req, res) => {
     await notificationService.sendMentionNotification(
       text, 
       sender, 
-      channel_id || receiver_id, 
-      channel_id ? 'channel' : 'dm'
+      channelId || receiverId, 
+      channelId ? 'channel' : 'dm'
     );
 
     // Agar DM hai aur koi mention nahi hua, toh simple DM notification bhejien
-    if (type === 'dm' && receiver_id) {
+    if (type === 'dm' && receiverId) {
         // Yahan aap logic check laga sakte hain ke agar mention notify ho chuka ha to dubara na ho
-        await notificationService.sendDMNotification(sender, receiver_id, text);
+        await notificationService.sendDMNotification(sender, receiverId, text);
     }
 
     return res.status(201).json({

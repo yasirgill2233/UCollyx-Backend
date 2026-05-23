@@ -125,11 +125,42 @@ const handleUpdateTeam = async (req, res) => {
     }
 };
 
+
+const getManagerPortfolio = async (req, res, next) => {
+  try {
+    const managerId = req.user.id; 
+    const portfolio = await projectService.fetchManagerPortfolio(managerId);
+    return res.status(200).json({
+      success: true,
+      message: "Manager portfolio matrix synchronized successfully.",
+      data: portfolio
+    });
+  } catch (error) {
+    console.error("Error inside getManagerPortfolio Controller:", error);
+    next(error);
+  }
+};
+
+const getProjectDetails = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const projectDetails = await projectService.fetchProjectFullDetails(1);
+    
+    if (!projectDetails) return res.status(404).json({ message: "Project not found" });
+
+    return res.status(200).json({ success: true, data: projectDetails });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
     createProject,
     getWorkspaceProjects,
     archiveProject,
     handleUpdateTeam,
     getMyProjects,
-    activeProject
+    activeProject,
+    getManagerPortfolio,
+    getProjectDetails
 };

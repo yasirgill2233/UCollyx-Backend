@@ -76,7 +76,7 @@ const sendMentionNotification = async (text, sender, targetId, chatType, name) =
       await Notification.create({
         recipient_id: mentionedUser.id,
         type: 'mention',
-        content: `${mentionedUser?.full_name} mentioned you in a ${chatType} [${name}]`,
+        content: `${mentionedUser?.full_name} mentioned you in a ${chatType} ${chatType=="channel" ?'(' + name + ')':""}`,
         target_url: `/chat/${chatType}/${name}/${targetId}`,
         is_read: false
       });

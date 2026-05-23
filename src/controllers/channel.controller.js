@@ -77,8 +77,24 @@ const addChannelMember = async (req, res) => {
   }
 };
 
+
+const getMembers = async (req, res) => {
+  try {
+    const channelId = req.params.id;
+    const members = await channelService.fetchMembers(channelId);
+    
+    res.status(200).json({
+      success: true,
+      data: members
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createChannel,
   getMyChannels,
-  addChannelMember
+  addChannelMember,
+  getMembers
 };

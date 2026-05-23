@@ -43,6 +43,28 @@ const Message = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: false,
     },
+    call_status: {
+      type: DataTypes.ENUM("active", "ended", "scheduled", "cancelled"),
+      allowNull: true,
+    },
+    scheduled_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    call_duration: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0
+    },
+    call_ended_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    // Message type differentiate krne k liye
+    type: {
+      type: DataTypes.ENUM("text", "call", "file", "task"),
+      defaultValue: "text",
+    },
     attachments: {
       type: DataTypes.JSON, // Sab se best tareeqa multiple files ke liye
       allowNull: true,
@@ -51,6 +73,15 @@ const Message = sequelize.define(
     sent_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
+    },
+    // --- NEW COLUMNS FOR AI TRANSCRIPTION ---
+    audio_url: {
+      type: DataTypes.STRING(255), // Cloudinary ka link yahan save hoga
+      allowNull: true,
+    },
+    transcript: {
+      type: DataTypes.TEXT, // AI ka generate kiya hua text yahan save hoga
+      allowNull: true,
     },
   },
   {

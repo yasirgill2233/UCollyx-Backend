@@ -11,5 +11,6 @@ const validate = require('../middleware/validate.middleware');
 router.post('/create',protect, channelController.createChannel);
 router.get('/my-channels', protect, channelController.getMyChannels);
 router.post('/add-member', protect, channelController.addChannelMember);
+router.get('/:id/members', protect, channelController.getMembers);
 
 module.exports = router;
