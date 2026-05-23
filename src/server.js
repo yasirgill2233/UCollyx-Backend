@@ -12,7 +12,7 @@ const { execSync } = require("child_process");
 
 const getContainerId = () => {
   try {
-    return execSync("docker ps -q -f ancestor=backend_backend")
+    return execSync("docker ps -q -f name=ucollyx-engine")
       .toString()
       .trim();
   } catch (e) {
@@ -120,7 +120,7 @@ io.on("connection", (socket) => {
         `${projectPath}:/home/node`,
         "-w",
         "/home/node",
-        "backend_backend",
+        "ucollyx-engine",
         "bash",
       ],
       {
