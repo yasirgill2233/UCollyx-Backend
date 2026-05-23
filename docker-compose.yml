@@ -9,4 +9,4 @@ services:
     volumes:
       - .:/home/node
     ports:
-      - "4001:4001"
+      - "4002:4002"
