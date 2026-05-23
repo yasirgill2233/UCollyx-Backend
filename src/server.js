@@ -12,7 +12,7 @@ const { execSync } = require("child_process");
 
 const getContainerId = () => {
   try {
-    return execSync("docker ps -q -f ancestor=backend_backend")
+    return execSync("docker ps -q -f ancestor=ucollyx-engine")
       .toString()
       .trim();
   } catch (e) {
