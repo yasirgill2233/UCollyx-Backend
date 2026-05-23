@@ -12,7 +12,7 @@ const { execSync } = require("child_process");
 
 const getContainerId = () => {
   try {
-    return execSync("docker ps -q -f ancestor=ucollyx-engine")
+    return execSync("docker ps -q -f ancestor=backend_backend")
       .toString()
       .trim();
   } catch (e) {
@@ -120,7 +120,7 @@ io.on("connection", (socket) => {
         `${projectPath}:/home/node`,
         "-w",
         "/home/node",
-        "ucollyx-engine",
+        "backend_backend",
         "bash",
       ],
       {
@@ -202,7 +202,7 @@ const startServer = async () => {
     await db.sequelize.authenticate();
     console.log("Database Connected & Synced!");
 
-    // await db.sequelize.sync({ force: true });
+    // await db.sequelize.sync({ alter: true });
 
     server.listen(PORT, () => {
       console.log(`
