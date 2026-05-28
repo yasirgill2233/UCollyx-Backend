@@ -99,10 +99,10 @@ io.on("connection", (socket) => {
 
     console.log(
       "###############################################################################",
-      projectPath,
+      projectId,
     );
 
-    const userId = projectPath || "default_user_sdfsdf_111";
+    const userId = projectId || "default_user_sdfsdf_111";
 
     const sshBaseDir = path.join(
       PROJECTS_BASE_DIR,
