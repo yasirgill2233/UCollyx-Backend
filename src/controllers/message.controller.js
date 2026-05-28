@@ -89,7 +89,7 @@ const getConversations = async (req, res) => {
 
     const participants = await messageService.getUserConversations(userId);
 
-    console.log("Conversations fetched:", participants.length);
+    console.log("Conversations fetched:", participants);
 
     return res.status(200).json({
       success: true,

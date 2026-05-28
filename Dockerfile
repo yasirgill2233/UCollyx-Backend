@@ -11,8 +11,19 @@ RUN apk add --no-cache \
     g++ \
     gcc \
     php \
+    php-cli \
+    php-mbstring \
+    php-xml \
+    php-openssl \
+    php-json \
+    php-phar \
+    php-dom \
+    php-curl \
+    composer \
+    php \
     bash \
     git \
+    curl \
     openssh-client
 
 USER node

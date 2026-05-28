@@ -1,41 +1,84 @@
-const { User, Task, Project } = require('../models');
-const { Sequelize } = require('sequelize');
+const { Project, Task, Subtask, User } = require('../models'); // Apne models ka sahi path dein
 
-exports.getTeamActivityData = async () => {
-  // Sabhi users aur unke tasks ka count fetch karein
-  // src/services/team.service.js
+/**
+ * Kisi specific Project ka poora data uske Tasks, Subtasks aur Assignees ke sath nikalne ke liye
+ */
+const getProjectDashboardData = async (projectId, userId, workpaceId) => {
+  console.log(userId, workpaceId)
+  try {
+    const projectData = await Project.findOne({
+      where: {id: projectId, workspace_id: workpaceId },
+      attributes: ['id', 'name', 'code', 'slug', 'status', 'progress', 'folder_path'],
+      include: [
+        {
+          model: Task,
+          attributes: ['id', 'title', 'description', 'status', 'priority', 'type', 'position', 'due_time'],
+          include: [
+            {
+              model: Subtask,
+              as: 'subtasks',
+              attributes: ['id', 'title', 'is_done', 'assignee_id'],
+            },
+            {
+              model: User,
+              as: "assignees", // Jo association file mein alias rakha tha
+              attributes: ['id', 'full_name', 'email', 'avatar_url'],
+              through: { attributes: [] } // Composite table data hide karne ke liye
+            }
+          ]
+        }
+      ],
+      order: [
+        [Task, 'position', 'ASC'] // Kanban board sorting ke liye
+      ]
+    });
 
-const users = await User.findAll({
-  attributes: ['id', 'name', 'email', 'role'],
-  include: [{
-    model: Task,
-    attributes: ['id', 'status', 'title', 'priority'],
-    include: [{ 
-      model: Project, 
-      attributes: ['name'] 
-    }]
-  }]
-});
+    if (!projectData) {
+      throw new Error("Project not found!");
+    }
 
-  // Dynamic Workload Calculation
-  return users.map(user => {
-    const tasks = user.Tasks || [];
-    const totalTasks = tasks.length;
-    // Assume 15 tasks is the 'Balanced' capacity (100%)
-    const percentage = Math.round((totalTasks / 15) * 100);
-    
-    let status = "Balanced";
-    let color = "bg-green-500";
-    if (percentage > 120) { status = "Overloaded"; color = "bg-red-500"; }
-    else if (percentage < 50) { status = "Underutilized"; color = "bg-yellow-500"; }
+    return projectData;
+  } catch (error) {
+    console.error("Error in getProjectDashboardData Service:", error.message);
+    throw error;
+  }
+};
 
-    return {
-      ...user.toJSON(),
-      tasks: `${totalTasks}/${15}`,
-      percentage,
-      status,
-      color,
-      projects: [...new Set(tasks.map(t => t.Project?.name).filter(Boolean))]
-    };
-  });
+/**
+ * Kisi User ke saare assigned tasks dekhne ke liye (For Today's Focus/My Tasks)
+ */
+const getUserAssignedTasks = async (userId) => {
+  try {
+    const userTasks = await User.findOne({
+      where: { id: userId },
+      attributes: ['id', 'full_name', 'email'],
+      include: [
+        {
+          model: Task,
+          attributes: ['id', 'title', 'status', 'priority', 'due_time', 'project_id'],
+          include: [
+            {
+              model: Project,
+              attributes: ['id', 'name', 'code']
+            },
+            {
+              model: Subtask,
+              attributes: ['id', 'title', 'is_done']
+            }
+          ]
+        }
+      ]
+    });
+
+    return userTasks;
+  } catch (error) {
+    console.error("Error in getUserAssignedTasks Service:", error.message);
+    throw error;
+  }
+};
+
+// Functions ko direct export kar do
+module.exports = {
+  getProjectDashboardData,
+  getUserAssignedTasks
 };
