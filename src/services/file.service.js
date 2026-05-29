@@ -1,34 +1,66 @@
-const fs = require('fs-extra');
-const path = require('path');
+const fs = require("fs-extra");
+const path = require("path");
+const { Project } = require("../models");
 
-/**
- * Local files ko server par physical storage memory me save karne ka function
- */
-const saveLocalProjectFiles = async (projectId, files) => {
-  // Path adjustment aapki folder structure ke mutabik (root folder me user_projects tak)
-//   const PROJECTS_BASE_DIR = path.join(process.cwd(), "user_projects");
-//       const relativePath = path.relative(PROJECTS_BASE_DIR, filePath);
-//       const parentFolder = path.dirname(relativePath);
+const saveLocalProjectFiles = async (
+  projectId,
+  files,
+  userId,
+  uploadSource,
+) => {
+  console.log("Saving local project files with data:", {
+    uploadSource,
+    totalItems: files ? files.length : 0
+  });
 
-console.log("Saving project files for projectId:", projectId, files);
+  // 1. Find Project Record
+  const projectRecord = await Project.findOne({
+    where: { slug: projectId },
+  });
 
-  const projectRootPath = path.join(__dirname, '..', 'user_projects', projectId);
+  // 🎯 FIX 1: Express 'res' remove kiya aur Error throw kiya taake controller isay catch kare
+  if (!projectRecord) {
+    throw new Error("Project workspace not found in database.");
+  }
 
-  // 1. Ensure root directory completely clean aur secure ban jaye
+  let projectRootPath = "";
+
+  // Dynamic root selection
+  if (uploadSource === "local") {
+    projectRootPath = path.resolve(__dirname, "../../user_browsed_projects", projectId);
+  } else {
+    projectRootPath = path.resolve(__dirname, "../../user_projects", projectId);
+  }
+
+  // 2. Update Database Folder Path
+  await projectRecord.update({
+    folder_path: projectRootPath,
+  });
+
+  // 3. Ensure Root Directory Exists
   await fs.ensureDir(projectRootPath);
 
-  // 2. Flat loop logic se dynamic folders aur sub-files write karein
-  for (const file of files) {
-    const fullFilePath = path.join(projectRootPath, file.relativePath);
-    
-    // fs-extra deep nested paths khud ba khud handle kar lega
-    await fs.ensureFile(fullFilePath); 
-    await fs.writeFile(fullFilePath, file.content, 'utf-8');
+  // 🎯 FIX 2: Check array before loop to prevent crash
+  if (files && Array.isArray(files)) {
+    for (const item of files) {
+      const fullPhysicalPath = path.join(projectRootPath, item.relativePath);
+
+      // 📂 Case A: Agar item folder hai (Chahe khali ho ya bhara hua)
+      if (item.type === "folder") {
+        await fs.ensureDir(fullPhysicalPath);
+        console.log(`📁 Directory created on disk: ${item.relativePath}`);
+      } 
+      // 📄 Case B: Agar item file hai
+      else {
+        await fs.ensureFile(fullPhysicalPath);
+        await fs.writeFile(fullPhysicalPath, item.content || "", "utf-8");
+      }
+    }
   }
 
   return { success: true, destination: projectRootPath };
 };
 
 module.exports = {
-  saveLocalProjectFiles
+  saveLocalProjectFiles,
 };

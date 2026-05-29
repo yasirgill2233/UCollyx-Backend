@@ -46,24 +46,35 @@ const io = new Server(server, {
   },
 });
 
-const PROJECTS_BASE_DIR = path.join(process.cwd(), "user_projects");
+const PROJECTS_BASE_DIR = path.join(process.cwd(), "../user_projects");
 
-async function startFileWatcher() {
-  const chokidar = await import("chokidar");
-  const watcher = chokidar.default.watch(PROJECTS_BASE_DIR, {
-    persistent: true,
-  });
+const activeProjectWatchers = {};
 
-  watcher.on("all", (event, filePath) => {
-    const relativePath = path.relative(PROJECTS_BASE_DIR, filePath);
-    const parentFolder = path.dirname(relativePath);
-    io.emit("file-tree-update", {
-      event,
-      path: relativePath,
-      parent: parentFolder === "." ? "root" : parentFolder,
+
+const getProjectPath = async (projectId) => {
+    const projectRecord = await db.Project.findOne({
+      where: { slug: projectId }
     });
-  });
-}
+    return projectRecord ? projectRecord.folder_path : null;
+  };
+
+
+// async function startFileWatcher() {
+//   const chokidar = await import("chokidar");
+//   const watcher = chokidar.default.watch(PROJECTS_BASE_DIR, {
+//     persistent: true,
+//   });
+
+//   watcher.on("all", (event, filePath) => {
+//     const relativePath = path.relative(PROJECTS_BASE_DIR, filePath);
+//     const parentFolder = path.dirname(relativePath);
+//     io.emit("file-tree-update", {
+//       event,
+//       path: relativePath,
+//       parent: parentFolder === "." ? "root" : parentFolder,
+//     });
+//   });
+// }
 
 const shell = os.platform() === "win32" ? "powershell.exe" : "bash";
 
@@ -71,10 +82,6 @@ io.on("connection", (socket) => {
   if (!fs.existsSync(PROJECTS_BASE_DIR)) {
     fs.mkdirSync(PROJECTS_BASE_DIR);
   }
-
-  const getProjectPath = (projectId) => {
-    return path.join(PROJECTS_BASE_DIR, projectId);
-  };
 
   const occupiedPorts = new Set();
 
@@ -90,27 +97,30 @@ io.on("connection", (socket) => {
     });
   };
 
-  const spawnTerminal = async (projectId, socket) => {
-    const projectPath = path.join(PROJECTS_BASE_DIR, projectId);
+  const spawnTerminal = async (projectId, socket, isBrowsed = false) => {
+    const targetBaseDir = isBrowsed 
+      ? path.join(__dirname, '..', 'user_browsed_projects') // Dynamic folder adjustment
+      : PROJECTS_BASE_DIR;
 
-    // let targetPort = 5178;
+    const projectPath = await getProjectPath(projectId);
+
+    // const projectPath = path.join(targetBaseDir, projectId);
+
+    const parts = projectPath.split('/')
+    parts.pop()
+
+    const base_path = parts.join('/')
+
 
     const projectMeta = getProjectMeta(projectPath, projectId);
-
-    console.log(
-      "###############################################################################",
-      projectId,
-    );
 
     const userId = projectId || "default_user_sdfsdf_111";
 
     const sshBaseDir = path.join(
-      PROJECTS_BASE_DIR,
+      base_path,
       `../user_keys/project_${userId}`,
     );
     const privateKeyPath = path.join(sshBaseDir, "id_ed25519");
-
-    console.log(`📂 Generating for: project_${userId}`);
 
     try {
       if (fs.existsSync(sshBaseDir)) {
@@ -126,10 +136,6 @@ io.on("connection", (socket) => {
       await execPromise(`chmod 700 "${sshBaseDir}"`);
       await execPromise(`chmod 600 "${privateKeyPath}"`);
       await execPromise(`chmod 644 "${privateKeyPath}.pub"`);
-
-      console.log(
-        `✨ [SUCCESS] Bilkul nayi unique key ban gayi hai project_${userId} ke liye!`,
-      );
     } catch (err) {
       console.error("❌ Key generation mein masla aaya:", err);
     }
@@ -147,10 +153,6 @@ io.on("connection", (socket) => {
     registerRuntimePort(projectId, targetPort);
 
     socket.emit("project:port-allocated", { port: targetPort });
-
-    console.log(
-      `🐳 Isolated Sandbox: Container allocated on live port [${targetPort}]`,
-    );
 
     const containerName = `ucollyx_${projectId}_${socket.id}_${Date.now()}`;
 
@@ -191,8 +193,7 @@ io.on("connection", (socket) => {
 
     return ptyProcess;
   };
-
-  console.log(`🔌 New User Connected to Socket Workspace: ${socket.id}`);
+  
 
   socket.on("file:join", ({ projectId, filePath, username }) => {
     socket.join(`file_room:${projectId}:${filePath}`);
@@ -200,11 +201,9 @@ io.on("connection", (socket) => {
     socket.username = username || `Dev_${socket.id.slice(0, 4)}`;
     socket.currentFile = filePath;
     socket.currentProject = projectId;
-
-    console.log(`👥 ${socket.username} joined collaboration for: ${filePath}`);
   });
 
-  socket.on("project:join", ({ projectId, username }) => {
+  socket.on("project:join", async ({ projectId, username }) => {
     if (!projectId) return;
 
     const roomName = `project_room:${projectId}`;
@@ -230,15 +229,50 @@ io.on("connection", (socket) => {
       projectId: projectId,
     };
 
-    console.log(
-      `👥 ${socket.username} joined workspace project space: ${projectId}`,
-    );
-
     // 🚀 PROJECT ROOM BROADCAST: Is project room ke sab connected logo ko updated list bhejo
     io.to(roomName).emit(
       "project:users-update",
       Object.values(activeFolderUsers[projectId]),
     );
+
+    //----------------------------------------------------------------------
+
+    try {
+      // 1. DB se project ka exact physical folder_path uthao (Chahe browsed ho ya assigned)
+      const actualProjectPath = await getProjectPath(projectId);
+
+      if (actualProjectPath && !activeProjectWatchers[projectId]) {
+        console.log(`👁️ Firing up Dynamic Chokidar Watcher for path: ${actualProjectPath}`);
+        
+        const chokidar = await import("chokidar");
+        
+        // 2. Sirf is specific project ke absolute path par watcher lagao
+        const watcher = chokidar.default.watch(actualProjectPath, {
+          persistent: true,
+          ignoreInitial: true // Initial files scanning skip karo taake performance drop na ho
+        });
+
+        watcher.on("all", (event, filePath) => {
+          // Absolute path me se relative path nikalne ke liye target project folder ka use karo
+          const relativePath = path.relative(actualProjectPath, filePath);
+          const parentFolder = path.dirname(relativePath);
+          
+          // 3. 🎯 BROADCAST OPTIMIZATION: Poore server par emit karne ki bajaye 
+          // sirf is project ke room me data bhejo taake dusre users disturb na hon
+          io.to(roomName).emit("file-tree-update", {
+            event,
+            path: relativePath,
+            parent: parentFolder === "." ? "root" : parentFolder,
+          });
+        });
+
+        // Track karne ke liye save kar lo instance
+        activeProjectWatchers[projectId] = watcher;
+      }
+    } catch (watcherError) {
+      console.error(`❌ Chokidar setup failed for project ${projectId}:`, watcherError.message);
+    }
+
   });
 
   // Jab user file leave kare ya socket disconnect ho
@@ -269,9 +303,13 @@ io.on("connection", (socket) => {
 
       // Memory dabba saaf karo
       delete activeFolderUsers[projectId][socket.id];
-      console.log(
-        `🏃 Explicit Leave: ${leavingUser.name} left project space: ${projectId}`,
-      );
+
+      // 🛑 WATCHER OFF-LOAD: Agar project khali ho chuka ha, to watcher band krdo
+        if (activeProjectWatchers[projectId]) {
+          console.log(`🛑 Stopping Chokidar Watcher for empty project room: ${projectId}`);
+          activeProjectWatchers[projectId].close();
+          delete activeProjectWatchers[projectId];
+        }
 
       // Agar room bilkul khali ho jaye toh project key hi delete kar do, warna baki connected users ko list broadcast karo
       if (Object.keys(activeFolderUsers[projectId]).length === 0) {
@@ -303,12 +341,6 @@ io.on("connection", (socket) => {
   socket.on("cursor:move", ({ projectId, filePath, cursorPosition }) => {
     const targetRoom = `file_room:${projectId}:${filePath}`;
 
-    // 🔍 DEBUG LOGS: Terminal par live dekhne ke liye
-    console.log(`----------------------------------------`);
-    console.log(`🎯 [CURSOR MOVE] User: ${socket.username || "Unknown"}`);
-    console.log(`📁 File: ${filePath}`);
-    console.log(`🏠 Sending to Room: ${targetRoom}`);
-
     socket.to(targetRoom).emit("cursor:update", {
       socketId: socket.id,
       username: socket.username,
@@ -324,14 +356,27 @@ io.on("connection", (socket) => {
       .emit("cursor:remove", { socketId: socket.id });
   });
 
-  socket.on("terminal:init", async (projectId) => {
+  socket.on("terminal:init", async (payload) => {
+
+    let projectId = "";
+    let isBrowsed = false;
+
+    if (payload && typeof payload === "object") {
+      projectId = payload.projectId;
+      isBrowsed = payload.isBrowsed;
+    } else {
+      projectId = payload;
+    }
+
+    if (!projectId) return;
+
     if (socket.ptyProcess) {
       if (socket.allocatedPort) occupiedPorts.delete(socket.allocatedPort);
       socket.ptyProcess.kill();
     }
 
     try {
-      const ptyProcess = await spawnTerminal(projectId, socket);
+      const ptyProcess = await spawnTerminal(projectId, socket, isBrowsed);
       socket.ptyProcess = ptyProcess;
 
       ptyProcess.onData((data) => {
@@ -383,7 +428,7 @@ io.on("connection", (socket) => {
       socket.ptyProcess.kill();
     }
     if (socket.allocatedPort) {
-      console.log(`♻️ Freeing up port: ${socket.allocatedPort}`);
+   
       occupiedPorts.delete(socket.allocatedPort);
     }
     const projectId = socket.currentProject;
@@ -394,7 +439,12 @@ io.on("connection", (socket) => {
       // User data memory se trace clear karein
       delete activeFolderUsers[projectId][socket.id];
 
-      console.log(`🏃‍♂️ User left project space context: ${projectId}`);
+      // 🛑 WATCHER OFF-LOAD ON DISCONNECT
+         if (activeProjectWatchers[projectId]) {
+            console.log(`🛑 Stopping Chokidar Watcher on developer disconnect: ${projectId}`);
+            activeProjectWatchers[projectId].close();
+            delete activeProjectWatchers[projectId];
+         }
 
       // Remaining connected developers list dispatch trigger
       io.to(roomName).emit(
@@ -402,13 +452,11 @@ io.on("connection", (socket) => {
         Object.values(activeFolderUsers[projectId]),
       );
     }
-    console.log("User Disconnected:", socket.id);
   });
 });
 
 const startServer = async () => {
   try {
-    await startFileWatcher();
     await db.sequelize.authenticate();
     console.log("Database Connected & Synced!");
 
