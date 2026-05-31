@@ -26,6 +26,7 @@ initializeProject();
 const uploadLocalProject = async (req, res) => {
   try {
     const { projectId, files, userId, uploadSource } = req.body;
+
     
     const result = await fileService.saveLocalProjectFiles(projectId, files, userId, uploadSource);
     
@@ -62,6 +63,12 @@ const getFileTreeHandler = async (req, res) => {
     try {
         const { projectId } = req.query;
 
+        if (!projectId) {
+            return res.status(400).json({ 
+                success: false, 
+                error: "Project identity slug is required in query parameters." 
+            });
+        }
         
         const projectRecord = await Project.findOne({
           where: { slug: projectId } // Agar client se slug aa rha ha, nahi to code use kar lena

@@ -1,0 +1,27 @@
+0 verbose cli /usr/local/bin/node /usr/local/bin/npm
+1 info using npm@10.8.2
+2 info using node@v20.20.2
+3 silly config load:file:/usr/local/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/node/.npmrc
+5 silly config load:file:/usr/local/etc/npmrc
+6 verbose title npm create vite@latest
+7 verbose argv "create" "vite@latest"
+8 verbose logfile logs-max:10 dir:/home/node/.npm/_logs/2026-05-31T12_35_53_289Z-
+9 verbose logfile /home/node/.npm/_logs/2026-05-31T12_35_53_289Z-debug-0.log
+10 silly logfile done cleaning log files
+11 silly packumentCache heap:2197815296 maxSize:549453824 maxEntrySize:274726912
+12 http fetch GET 200 https://registry.npmjs.org/npm 578ms
+13 http fetch GET 200 https://registry.npmjs.org/create-vite 639ms (cache miss)
+14 silly packumentCache heap:2197815296 maxSize:549453824 maxEntrySize:274726912
+15 silly idealTree buildDeps
+16 silly fetch manifest create-vite@9.0.7
+17 silly packumentCache full:https://registry.npmjs.org/create-vite cache-miss
+18 http fetch GET 200 https://registry.npmjs.org/create-vite 129ms (cache miss)
+19 silly packumentCache full:https://registry.npmjs.org/create-vite set size:undefined disposed:false
+20 silly placeDep ROOT create-vite@9.0.7 OK for:  want: 9.0.7
+21 silly reify moves {}
+22 silly audit bulk request { 'create-vite': [ '9.0.7' ] }
+23 silly tarball no local data for create-vite@https://registry.npmjs.org/create-vite/-/create-vite-9.0.7.tgz. Extracting by manifest.
+24 http fetch GET 200 https://registry.npmjs.org/create-vite/-/create-vite-9.0.7.tgz 548ms (cache miss)
+25 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 1271ms
+26 silly audit report {}

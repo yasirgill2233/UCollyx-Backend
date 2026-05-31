@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const { Issue, IssueAttachment, User, IssueComment } = require("../models");
+const { Issue, IssueAttachment, User, IssueComment, Project } = require("../models");
 
 const issueService = {
   //   createIssue: async (issueData) => {
@@ -129,8 +129,55 @@ const issueService = {
     });
   },
 
+
+//   getProjectIssues: async (projectId, workspaceId) => {
+//   try {
+//     console.log(`📡 Fetching issues for Project: ${projectId} inside Workspace: ${workspaceId}`);
+
+//     return await Issue.findAll({
+//       where: { 
+//         project_id: projectId // Target project ke issues uthao 
+//       },
+//       distinct: true, // Duplicates row validation handle karne ke liye
+//       include: [
+//         {
+//           model: User,
+//           as: "reporter", // 
+//           attributes: ["id", "full_name", "avatar_url"],
+//         },
+//         {
+//           model: User,
+//           as: "assignee", // 
+//           attributes: ["id", "full_name", "avatar_url"],
+//         },
+//         { 
+//           model: IssueAttachment, 
+//           as: "attachments" // [cite: 61]
+//         },
+//         {
+//           // 🎯 DIRECT WORKSPACE BOUNDARY ENFORCEMENT
+//           // Project table ko include karke strict workspace check lagaya
+//           model: Project,
+//           as: "issues",
+//           required: true, // Strict Inner Join taake sirf isi workspace ka data mile
+//           where: { 
+//             workspace_id: workspaceId // 🔥 Secure workspace isolation check 
+//           },
+//           attributes: [] // Humen response payload me project table ka data extra nahi chahiye
+//         }
+//       ],
+//       order: [["created_at", "DESC"]], // 
+//     });
+
+//   } catch (error) {
+//     console.error("❌ Error inside getProjectIssues service:", error.message);
+//     throw error;
+//   }
+// },
+
   // 3. Single Issue ki details, comments aur attachments ke sath nikalna
-  getIssues: async (userId) => {
+  
+  getIssues: async (workspaceId) => {
     return await Issue.findAll({
       include: [
         {
@@ -155,12 +202,21 @@ const issueService = {
             },
           ],
         },
+        {
+          model: Project,
+          as: "project",
+          required: true, // Strict Inner Join taake sirf isi workspace ka data mile
+          where: {
+            workspace_id: workspaceId, // 🔥 Secure workspace isolation check
+          },
+          attributes: [], // Humen response payload me project table ka data extra nahi chahiye
+        },
       ],
       order: [[{ model: IssueComment, as: "comments" }, "created_at", "ASC"]],
     });
   },
 
-  getIssueDetails: async (userId) => {
+  getIssueDetails: async (userId, workspaceId) => {
     return await Issue.findAll({
       where: {
         assigned_to: userId,
@@ -190,6 +246,15 @@ const issueService = {
               attributes: ["id", "full_name", "avatar_url"],
             },
           ],
+        },
+        {
+          model: Project,
+          as: "project",
+          required: true, // Strict Inner Join taake sirf isi workspace ka data mile
+          where: {
+            workspace_id: workspaceId, // 🔥 Secure workspace isolation check
+          },
+          attributes: [], // Humen response payload me project table ka data extra nahi chahiye
         },
       ],
       order: [[{ model: IssueComment, as: "comments" }, "created_at", "ASC"]],

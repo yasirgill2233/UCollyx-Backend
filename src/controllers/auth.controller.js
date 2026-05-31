@@ -123,11 +123,68 @@ const updatePassword = async (req, res) => {
     }
 };
 
+
+const jwt = require('jsonwebtoken');
+const { WorkspaceMember } = require('../models'); // 🎯 Aapka pivot/junction model jo user aur workspace ko jorrtah ha
+
+const selectWorkspace = async (req, res) => {
+    try {
+        const { workspaceId, role } = req.body;
+        const userId = req.user.id; // 🔐 Middleware ne token verify karke user ID yahan inject kar di
+
+        // 1. Validation Check
+        if (!workspaceId || !role) {
+            return res.status(400).json({ error: "Missing workspaceId or role context properties." });
+        }
+
+        // 2. Security Membership Check: Kya yeh user waqai is workspace ka hissa hai?
+        const checkMembership = await WorkspaceMember.findOne({
+            where: { 
+                user_id: userId, 
+                workspace_id: workspaceId,
+                role: role 
+            }
+        });
+
+        if (!checkMembership) {
+            return res.status(403).json({ error: "Access Denied. You are not assigned to this workspace context." });
+        }
+
+        // 3. 🚀 FRESH JWT SIGNING:
+        // Purane token claims ke sath naya workspace_id aur role inject karke secure signature token banate hain
+        const tokenPayload = {
+            id: userId,
+            email: req.user.email, // Middleware se email
+            workspace_id: workspaceId, // 🎯 Updated Context Linked
+            role: role                 // 🎯 Updated Permission Linked
+        };
+
+        // Fresh dynamic JWT Token token generation
+        const newToken = jwt.sign(
+            tokenPayload, 
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRES_IN },
+        );
+
+        // Send back to frontend
+        return res.status(200).json({
+            success: true,
+            message: "Session context synchronized successfully.",
+            newToken: newToken // 👈 Yeh naya token frontend localstorage me overwrite karega
+        });
+
+    } catch (err) {
+        console.error("❌ Workspace Session Switch Error:", err.message);
+        return res.status(500).json({ error: "Internal session token sign server error." });
+    }
+};
+
 module.exports = {
     signup,
     verifyOTP,
     login,
     googleLogin,
     resendOTP,
-    updatePassword
+    updatePassword,
+    selectWorkspace
 };

@@ -79,6 +79,7 @@ const User = sequelize.define(
 User.associate = (models) => {
   User.hasMany(models.VerificationCode, { foreignKey: "user_id" });
   User.hasMany(models.Workspace, { foreignKey: "owner_id" });
+  
   User.belongsToMany(models.Workspace, {
     through: models.WorkspaceMember,
     foreignKey: "user_id",

@@ -419,11 +419,11 @@ const processJoinRequest = async (
   return request;
 };
 
-const changeMemberRole = async (userId, newRole) => {
+const changeMemberRole = async (workspaceId, userId, newRole) => {
   try {
     const [updatedRows] = await WorkspaceMember.update(
       { role: newRole },
-      { where: { user_id: userId } },
+      { where: { user_id: userId, workspace_id: workspaceId } },
     );
 
     if (updatedRows === 0) {

@@ -209,12 +209,12 @@ const handleJoinAction = async (req, res) => {
 
 const updateMemberRole = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId, workspaceId } = req.params;
     const { role } = req.body;
 
     console.log(role, userId)
 
-    const result = await workspaceService.changeMemberRole(userId, role);
+    const result = await workspaceService.changeMemberRole(workspaceId, userId, role);
     
     return res.status(200).json({ 
       message: "Role updated successfully", 

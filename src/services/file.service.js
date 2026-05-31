@@ -13,6 +13,7 @@ const saveLocalProjectFiles = async (
     totalItems: files ? files.length : 0
   });
 
+  
   // 1. Find Project Record
   const projectRecord = await Project.findOne({
     where: { slug: projectId },
@@ -27,10 +28,12 @@ const saveLocalProjectFiles = async (
 
   // Dynamic root selection
   if (uploadSource === "local") {
-    projectRootPath = path.resolve(__dirname, "../../user_browsed_projects", projectId);
+    projectRootPath = path.resolve(__dirname, "../../user_browsed_projects", projectId+"_"+userId);
   } else {
     projectRootPath = path.resolve(__dirname, "../../user_projects", projectId);
   }
+  
+  console.log("Project ID:================================================================", projectRootPath+"_"+userId);
 
   // 2. Update Database Folder Path
   await projectRecord.update({

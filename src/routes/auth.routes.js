@@ -9,5 +9,6 @@ router.post('/login', authController.login);
 router.post('/google', authController.googleLogin);
 router.post('/resend-otp', authController.resendOTP);
 router.put('/change-password', protect, authController.updatePassword);
+router.post('/select-workspace', protect, authController.selectWorkspace);
 
 module.exports = router;

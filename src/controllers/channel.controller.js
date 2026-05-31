@@ -32,9 +32,10 @@ const createChannel = async (req, res) => {
 
 const getMyChannels = async (req, res) => {
   try {
-    const userId = req.user.id; // Auth middleware se user ID milegi
+    const userId = req.user.id;
+    const workspaceId = req.user.workspace_id;
 
-    const channels = await channelService.getUserChannels(userId);
+    const channels = await channelService.getUserChannels(userId, workspaceId);
 
     return res.status(200).json({
       success: true,
@@ -81,7 +82,8 @@ const addChannelMember = async (req, res) => {
 const getMembers = async (req, res) => {
   try {
     const channelId = req.params.id;
-    const members = await channelService.fetchMembers(channelId);
+    const workspaceId = req.user.workspace_id;
+    const members = await channelService.fetchMembers(channelId, workspaceId);
     
     res.status(200).json({
       success: true,

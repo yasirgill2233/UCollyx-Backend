@@ -57,7 +57,8 @@ const issueController = {
   getByProject: async (req, res) => {
     try {
       const { projectId } = req.params;
-      const issues = await issueService.getProjectIssues(projectId);
+      const workspaceId = req.user.workspace_id;
+      const issues = await issueService.getProjectIssues(projectId, workspaceId);
       return res.status(200).json({ success: true, data: issues });
     } catch (error) {
       return res.status(500).json({ success: false, message: error.message });
@@ -65,8 +66,9 @@ const issueController = {
   },
 
   getIssues: async (req, res) => {
+    const workspaceId = req.user.workspace_id;
     try {
-      const issue = await issueService.getIssues();
+      const issue = await issueService.getIssues(workspaceId);
       if (!issue)
         return res
           .status(404)
@@ -80,7 +82,8 @@ const issueController = {
   getDetails: async (req, res) => {
     try {
       const id = req.user.id;
-      const issue = await issueService.getIssueDetails(id);
+      const workspaceId = req.user.workspace_id;
+      const issue = await issueService.getIssueDetails(id, workspaceId);
       if (!issue)
         return res
           .status(404)
@@ -137,7 +140,58 @@ const issueController = {
     }
   },
 
-  getIssuesList: async (req, res) => {
+  // getIssuesList: async (req, res) => {
+  //   try {
+  //     const { status } = req.query;
+  //     console.log("Database Pipeline Tracking Status Param:", status);
+
+  //     let whereCondition = {};
+  //     if (status) {
+  //       whereCondition.status = status;
+  //     }
+
+  //     const issues = await Issue.findAll({
+  //       where: {
+  //         [Op.or]: [
+  //           { status: "Ready for QA" },
+  //           // {
+  //           //   retest_status: {
+  //           //     [Op.in]: ["Failed"]
+  //           //   }
+  //           // }
+  //         ],
+  //       },
+  //       include: [
+  //         {
+  //           model: Project,
+  //           as: "project",
+  //           attributes: ["id", "name"], // Interface filter labels loading
+  //         },
+  //         {
+  //           model: User,
+  //           as: "assignee",
+  //           attributes: ["id", "full_name"], // Assignee identification context
+  //         },
+  //       ],
+  //       order: [["updatedAt", "DESC"]], // Fresh items to test top par show honge
+  //     });
+
+  //     return res.status(200).json({
+  //       success: true,
+  //       data: issues,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error in getIssuesList Controller:", error);
+  //     return res.status(500).json({
+  //       success: false,
+  //       message:
+  //         "Internal Server Error executing active workspace queues query.",
+  //     });
+  //   }
+  // },
+
+   getIssuesList: async (req, res) => {
+    const workspaceId = req.user.workspace_id;
     try {
       const { status } = req.query;
       console.log("Database Pipeline Tracking Status Param:", status);
@@ -162,6 +216,9 @@ const issueController = {
           {
             model: Project,
             as: "project",
+            where: {
+            workspace_id: workspaceId, // 🔥 Secure workspace isolation check
+          },
             attributes: ["id", "name"], // Interface filter labels loading
           },
           {
@@ -186,7 +243,6 @@ const issueController = {
       });
     }
   },
-
 
   verifyIssueVerdict: async (req, res) => {
     try {

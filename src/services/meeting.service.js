@@ -57,10 +57,10 @@ const createMeeting = async (meetingData, creatorId) => {
   return newMeeting;
 };
 
-const fetchAllMeetings = async (id) => {
+const fetchAllMeetings = async (id, work_id) => {
   return await Meeting.findAll({
     include: [
-      { model: Project, attributes: ["id", "name"] },
+      { model: Project, attributes: ["id", "name"], where: { workspace_id: work_id }},
       {
         model: User,
         as: "Participants",
