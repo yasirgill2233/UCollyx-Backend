@@ -118,6 +118,8 @@ const loginUser = async (email, password) => {
       },
     ],
   });
+
+  console.log("#############################################################################################################", user.full_name);
   
   if (!user) throw new Error("Invalid email or password");
 
@@ -157,6 +159,7 @@ const loginUser = async (email, password) => {
       id: user.id,
       email: user.email,
       role: finalRole,
+      full_name: user.full_name,
       workspace_id: workspaceId,
     },
     process.env.JWT_SECRET,

@@ -7,8 +7,8 @@ const Task = sequelize.define(
     id: {
       type: DataTypes.STRING(50),
       primaryKey: true,
-      autoIncrement: true,
-      // defaultValue: () => `task-${Date.now()}`
+      autoIncrement: false,
+      defaultValue: () => `task-${Date.now()}`
     },
     project_id: {
       type: DataTypes.INTEGER,

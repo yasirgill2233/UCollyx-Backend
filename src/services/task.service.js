@@ -128,9 +128,71 @@ const fetchTodayTaskData = async (userId) => {
 };
 
 
-const updateTaskState = async (taskId, status, position) => {
-  return await Task.update({ status, position }, { where: { id: taskId } });
+// const updateTaskState = async (taskId, status, position) => {
+//   return await Task.update({ status, position }, { where: { id: taskId } });
+// };
+
+
+
+
+// 🚀 UPDATED: Safe handling for sorting positions inside matching status columns
+const updateTaskState = async (taskId, status, position, projectId) => {
+  // 1. Pehle target task ko fetch karein taake uski purani state ka pata chale
+  const task = await Task.findByPk(taskId);
+  if (!task) throw new Error("Task not found");
+
+  const oldStatus = task.status;
+  const oldPosition = task.position;
+
+  // 2. Agar status change hua hai ya position shuffle hui hai
+  if (oldStatus === status) {
+    if (oldPosition < position) {
+      // Moving down
+      await Task.decrement('position', {
+        where: {
+          project_id: task.project_id,
+          status: status,
+          position: { [Op.between]: [oldPosition + 1, position] }
+        }
+      });
+    } else if (oldPosition > position) {
+      // Moving up
+      await Task.increment('position', {
+        where: {
+          project_id: task.project_id,
+          status: status,
+          position: { [Op.between]: [position, oldPosition - 1] }
+        }
+      });
+    }
+  } else {
+    // Status badal gaya: Purane column ke bache hue cards ko shift-up karein
+    await Task.decrement('position', {
+      where: {
+        project_id: task.project_id,
+        status: oldStatus,
+        position: { [Op.gt]: oldPosition }
+      }
+    });
+
+    // Naye column ke cards ko shift-down karein space banane ke liye
+    await Task.increment('position', {
+      where: {
+        project_id: task.project_id,
+        status: status,
+        position: { [Op.gte]: position }
+      }
+    });
+  }
+
+  // 3. Final target position save karein
+  task.status = status;
+  task.position = position;
+  await task.save();
+
+  return task;
 };
+
 
 const createNewTask = async (taskData) => {
   const taskCount = await Task.count({
@@ -252,6 +314,7 @@ const toggleAssigneeMapping = async (taskId, userId) => {
 };
 
 const fetchEpicsByProjectId = async (projectId) => {
+  console.log(projectId);
   return await Task.findAll({
     where: { project_id: projectId, type: "epic" },
     order: [["title", "ASC"]],
@@ -267,11 +330,6 @@ const assignEpicToTask = async (taskId, epicId) => {
   await task.save();
 
   return task;
-
-  // // Return task with newly attached Epic metadata
-  // return await Task.findByPk(taskId, {
-  //     include: [{ model: Epic, as: 'Epic' }]
-  // });
 };
 
 module.exports = {

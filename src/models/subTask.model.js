@@ -5,7 +5,8 @@ const Subtask = sequelize.define('Subtask', {
     id: {
         type: DataTypes.STRING(50),
         primaryKey: true,
-        autoIncrement: true
+        autoIncrement: false, // Isay false karein ya bilkul hata dein
+        defaultValue: () => `subtask-${Date.now()}` // Yeh lagana zaroori hai agar string ID chahiye
     },
     task_id: {
         type: DataTypes.STRING(50),
