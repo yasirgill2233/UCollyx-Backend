@@ -185,8 +185,6 @@ const loginUser = async (email, password) => {
       },
     ],
   });
-
-  console.log("#############################################################################################################", user.full_name);
   
   if (!user) throw new Error("Invalid email or password");
 
