@@ -12,6 +12,53 @@ const sendEmail = require("../utils/email");
 const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// const registerUser = async (userData) => {
+//   const { email, password, full_name } = userData;
+
+//   const existingUser = await User.findOne({ where: { email } });
+//   if (existingUser) {
+//     throw new Error("User with this email already exists");
+//   }
+
+//   const salt = await bcrypt.genSalt(10);
+//   const hashedPassword = await bcrypt.hash(password, salt);
+
+//   const newUser = await User.create({
+//     email,
+//     full_name,
+//     password: hashedPassword,
+//     status: "pending",
+//   });
+
+//   const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+//   const expiresAt = new Date(Date.now() + 40 * 1000);
+
+//   await VerificationCode.create({
+//     user_id: newUser.id,
+//     code: otpCode,
+//     type: "email_verify",
+//     expires_at: expiresAt,
+//   });
+
+//   try {
+//     await sendEmail({
+//       email: newUser.email,
+//       subject: "Verify your UCollyx Account",
+//       message: "Your verification code is:",
+//       otp: otpCode,
+//     });
+//     console.log(`Real Email sent to ${newUser.email}`);
+//   } catch (err) {
+//     console.error("Email failed to send:", err.message);
+//     throw new Error(
+//       "Email could not be sent. Please check your email settings.",
+//     );
+//   }
+
+//   return newUser;
+// };
+
+
 const registerUser = async (userData) => {
   const { email, password, full_name } = userData;
 
@@ -23,39 +70,59 @@ const registerUser = async (userData) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  const newUser = await User.create({
-    email,
-    full_name,
-    password: hashedPassword,
-    status: "pending",
-  });
-
-  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 40 * 1000);
-
-  await VerificationCode.create({
-    user_id: newUser.id,
-    code: otpCode,
-    type: "email_verify",
-    expires_at: expiresAt,
-  });
+  let newUser = null;
 
   try {
+    newUser = await User.create({
+      email,
+      full_name,
+      password: hashedPassword,
+      status: "pending",
+    });
+
+    const otpCode = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+
+    const expiresAt = new Date(Date.now() + 40 * 1000);
+
+    await VerificationCode.create({
+      user_id: newUser.id,
+      code: otpCode,
+      type: "email_verify",
+      expires_at: expiresAt,
+    });
+
     await sendEmail({
       email: newUser.email,
       subject: "Verify your UCollyx Account",
       message: "Your verification code is:",
       otp: otpCode,
     });
+
     console.log(`Real Email sent to ${newUser.email}`);
+
+    return newUser;
+
   } catch (err) {
-    console.error("Email failed to send:", err.message);
+
+    // rollback
+    if (newUser) {
+      await VerificationCode.destroy({
+        where: { user_id: newUser.id },
+      });
+
+      await User.destroy({
+        where: { id: newUser.id },
+      });
+    }
+
+    console.error("Registration failed:", err.message);
+
     throw new Error(
-      "Email could not be sent. Please check your email settings.",
+      "Registration failed because verification email could not be sent."
     );
   }
-
-  return newUser;
 };
 
 const verifyEmail = async (email, code) => {
