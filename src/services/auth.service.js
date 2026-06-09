@@ -106,22 +106,19 @@ const registerUser = async (userData) => {
 
   } catch (err) {
 
-    // rollback
-    if (newUser) {
-      await VerificationCode.destroy({
-        where: { user_id: newUser.id },
-      });
+    console.error("FULL ERROR:", err);
 
-      await User.destroy({
-        where: { id: newUser.id },
-      });
-    }
+  if (newUser) {
+    await VerificationCode.destroy({
+      where: { user_id: newUser.id },
+    });
 
-    console.error("Registration failed:", err.message);
+    await User.destroy({
+      where: { id: newUser.id },
+    });
+  }
 
-    throw new Error(
-      "Registration failed because verification email could not be sent."
-    );
+  throw err;
   }
 };
 

@@ -1,16 +1,6 @@
 const transporter = require('../config/mailer');
 
 const sendEmail = async (options) => {
-    // 1. Transporter banayein (Gmail settings)
-    // const transporter = nodemailer.createTransport({
-    //     service: 'gmail',
-    //     auth: {
-    //         user: process.env.EMAIL_USER, // Aapka Gmail
-    //         pass: process.env.EMAIL_PASS  // Aapka Gmail App Password
-    //     }
-    // });
-
-    // 2. Email options define karein
     const mailOptions = {
         from: `UCollyx Support <${process.env.EMAIL_USER}>`,
         to: options.email,
