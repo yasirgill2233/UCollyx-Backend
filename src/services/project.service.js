@@ -30,6 +30,8 @@ const createProject = async (projectData, workspaceId, creatorId) => {
 
     const projectPath = path.join(rootDir, slug);
 
+    console.log("#########################################################################################",projectPath, workspaceId, code, slug, projectData)
+    
     const project = await Project.create(
       {
         ...projectData,
@@ -40,6 +42,8 @@ const createProject = async (projectData, workspaceId, creatorId) => {
       },
       { transaction: t },
     );
+
+    console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",project)
 
     await fs.mkdir(projectPath, { recursive: true });
 
@@ -55,9 +59,7 @@ const createProject = async (projectData, workspaceId, creatorId) => {
     }
 
 
-    // 4. Create Channel if createChannel is true
     if (projectData.createChannel) {
-      // Create clean channel name (e.g. #alpha-project)
       const channelName = `#${projectData.name.toLowerCase().replace(/[^a-zA-Z0-9]+/g, "-")}`;
 
       const channel = await Channel.create(
@@ -71,7 +73,6 @@ const createProject = async (projectData, workspaceId, creatorId) => {
         { transaction: t }
       );
 
-      // Jisne project banaya, usko channel mein as an 'admin' join karayein
       await ChannelMember.create(
         {
           channel_id: channel.id,
