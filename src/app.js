@@ -18,10 +18,15 @@ const teamRoute = require('./routes/team.routes');
 const gitRoute = require('./routes/gitRoute.routes');
 const fileRoute = require('./routes/file.routes');
 const proxyRoute = require('./routes/proxy.routes');
+const adminRoute = require('./routes/admin.routes');
+const organizationRoute = require('./routes/organization.routes');
 
 const app = express();
 
-app.use(helmet()); // Security headers ke liye
+// app.use(helmet()); // Security headers ke liye
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(cors());   // Cross-origin requests allow karne ke liye
 app.use(morgan('dev')); // Console mein requests log karne ke liye
 app.use(express.json()); // JSON data handle karne ke liye
@@ -40,6 +45,8 @@ app.use('/api/issues', issueRoute);
 app.use('/api/git', gitRoute);
 app.use('/api/files', fileRoute);
 app.use('/api/proxy', proxyRoute);
+app.use('/api/admin', adminRoute);
+app.use('/api/organizations', organizationRoute);
 
 // Logos folder static mapping
 app.use('/uploads/avatars', express.static(path.join(__dirname, '../uploads/avatars')));

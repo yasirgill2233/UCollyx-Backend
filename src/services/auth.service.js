@@ -178,10 +178,12 @@ const loginUser = async (email, password) => {
       {
         model: Workspace,
         through: { attributes: ["role"] },
-        attributes: ["id", "name"],
+        attributes: ["id", "name", "status"],
       },
     ],
   });
+
+  if (user.Workspaces[0].status === "suspended") throw new Error("Workspace is suspended");
   
   if (!user) throw new Error("Invalid email or password");
 
