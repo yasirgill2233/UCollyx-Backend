@@ -191,7 +191,7 @@ const issueController = {
   // },
 
    getIssuesList: async (req, res) => {
-    const workspaceId = req.user.workspace_id;
+    const workspaceId = req?.user?.workspace_id;
     try {
       const { status } = req.query;
       console.log("Database Pipeline Tracking Status Param:", status);

@@ -6,7 +6,7 @@ const { protect } = require('../middleware/auth.middleware');
 
 // 📌 Core Issue Actions
 router.post("/create", protect, upload.array("issues", 5), issueController.create);                      // Bug create karna
-router.get("/project/:projectId/members", protect, issueController.getByProject); // Project dashboard board list load karna
+router.get("/project/:projectId", protect, issueController.getByProject); // Project dashboard board list load karna
 // router.get("/", protect, issueController.getByProject); 
 router.get("/", protect, issueController.getIssues);
 
@@ -18,10 +18,10 @@ router.post("/:id/comments", protect, issueController.postComment);       // Iss
 
 router.post("/:id/attachments", protect, issueController.uploadAttachment); // Screenshot attach karna
 
-router.get("/qa-ready", issueController.getIssuesList);
+router.get("/qa-ready", protect, issueController.getIssuesList);
 
 // 🛠️ 2. QA Lab Verification Verdict Action
 // Handles: PATCH /api/issues/:id/verify
-router.patch("/:id/verify", issueController.verifyIssueVerdict);
+router.patch("/:id/verify", protect,  issueController.verifyIssueVerdict);
 
 module.exports = router;
