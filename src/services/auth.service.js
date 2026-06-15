@@ -183,7 +183,7 @@ const loginUser = async (email, password) => {
     ],
   });
 
-  if (user.Workspaces[0].status === "suspended") throw new Error("Workspace is suspended");
+  if (user?.Workspaces[0] && user?.Workspaces[0]?.status === "suspended") throw new Error("Workspace is suspended");
   
   if (!user) throw new Error("Invalid email or password");
 
