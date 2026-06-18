@@ -5,10 +5,12 @@ const channelController = require('../controllers/channel.controller');
 const { strictLimiter } = require('../middleware/rateLimiter.middleware'); // Import limiter
 
 const { protect } = require('../middleware/auth.middleware');
+
+const { createChannelSchema } = require('../validators/channel/channel.validation');
 const validate = require('../middleware/validate.middleware');
 
 // POST /api/channels/create
-router.post('/create',protect, channelController.createChannel);
+router.post('/create', protect, validate(createChannelSchema), channelController.createChannel);
 router.get('/my-channels', protect, channelController.getMyChannels);
 router.post('/add-member', protect, channelController.addChannelMember);
 router.get('/:id/members', protect, channelController.getMembers);
