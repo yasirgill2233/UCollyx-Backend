@@ -186,17 +186,32 @@ const activeProject = async (projectId) => {
 };
 
 const updateProjectTeam = async (projectId, members) => {
-  console.log("this is the role that we need", members[0]?.role);
+  console.log("this is the role that we need", projectId, members[0]?.role);
+
   try {
+    // Delete existing members
     await ProjectMember.destroy({
       where: { project_id: projectId },
     });
 
+    // Update project manager
+    await Project.update(
+      {
+        manager_id: members.find(
+        (member) => member.role?.toLowerCase() === "manager"
+      )?.id || null,
+      },
+      {
+        where: { id: projectId },
+      }
+    );
+
+    // Add new members
     if (members && members.length > 0) {
       const memberData = members.map((m) => ({
         project_id: projectId,
-        user_id: m?.id,
-        project_role: m?.role,
+        user_id: m.id,
+        project_role: m.role,
       }));
 
       return await ProjectMember.bulkCreate(memberData);
@@ -208,8 +223,9 @@ const updateProjectTeam = async (projectId, members) => {
   }
 };
 
-
 const fetchManagerPortfolio = async (managerId) => {
+
+  console.log("################################", managerId)
   const portfolioData = await Project.findAll({
     attributes: [
       "id",
@@ -259,7 +275,7 @@ const fetchManagerPortfolio = async (managerId) => {
       }
     ],
     // Filtering logic (Optional: Agar aap chahein ke manager ko sirf uske links dikhein)
-    where: { manager_id: 1 }, 
+    where: { manager_id: managerId }, 
     group: ["Project.id"],
     order: [["createdAt", "DESC"]]
   });

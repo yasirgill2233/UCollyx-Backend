@@ -3,11 +3,13 @@ const {getProjectDashboardData} = require('../services/team.service');
 const getProjectDashboard = async (req, res) => {
   try {
     const { projectId } = req.params;
+
+    console.log("##################################################################################################",projectId)
     const workpaceId = req.user.workspace_id
     const userId = req.user.id
     
     // Direct function call
-    const data = await getProjectDashboardData(1, userId, workpaceId);
+    const data = await getProjectDashboardData(projectId, userId, workpaceId);
     
     return res.status(200).json({
       success: true,

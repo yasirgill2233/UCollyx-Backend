@@ -1,13 +1,10 @@
-const { Project, Task, Subtask, User } = require('../models'); // Apne models ka sahi path dein
+const { Project, Task, Subtask, User } = require('../models');
 
-/**
- * Kisi specific Project ka poora data uske Tasks, Subtasks aur Assignees ke sath nikalne ke liye
- */
 const getProjectDashboardData = async (projectId, userId, workpaceId) => {
-  console.log(userId, workpaceId)
+  console.log("###############",userId, workpaceId)
   try {
     const projectData = await Project.findOne({
-      where: {id: projectId, workspace_id: workpaceId },
+      where: {name: projectId, workspace_id: workpaceId },
       attributes: ['id', 'name', 'code', 'slug', 'status', 'progress', 'folder_path'],
       include: [
         {
@@ -21,15 +18,15 @@ const getProjectDashboardData = async (projectId, userId, workpaceId) => {
             },
             {
               model: User,
-              as: "assignees", // Jo association file mein alias rakha tha
+              as: "assignees",
               attributes: ['id', 'full_name', 'email', 'avatar_url'],
-              through: { attributes: [] } // Composite table data hide karne ke liye
+              through: { attributes: [] }
             }
           ]
         }
       ],
       order: [
-        [Task, 'position', 'ASC'] // Kanban board sorting ke liye
+        [Task, 'position', 'ASC']
       ]
     });
 
@@ -44,9 +41,6 @@ const getProjectDashboardData = async (projectId, userId, workpaceId) => {
   }
 };
 
-/**
- * Kisi User ke saare assigned tasks dekhne ke liye (For Today's Focus/My Tasks)
- */
 const getUserAssignedTasks = async (userId) => {
   try {
     const userTasks = await User.findOne({
@@ -77,7 +71,6 @@ const getUserAssignedTasks = async (userId) => {
   }
 };
 
-// Functions ko direct export kar do
 module.exports = {
   getProjectDashboardData,
   getUserAssignedTasks
