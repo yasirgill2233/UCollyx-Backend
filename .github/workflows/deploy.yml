@@ -1,33 +1,25 @@
-name: UCollyx Backend CI/CD Pipeline
+name: Deploy Backend
 
 on:
   push:
     branches:
       - main
-      - master
-    paths:
-      - 'backend/**' # Sirf backend code tabdeel hone par chalay ga
 
 jobs:
-  deploy-backend:
+  deploy:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
 
-      - name: Deploy to Server Backend Directory
-        run: |
-          echo "📂 Moving into Project Backend Directory..."
-          cd /var/www/ucollyx-app/backend
-          
-          echo "🔄 Pulling latest changes from Git..."
-          git pull origin main
-          
-          echo "📦 Installing fresh node modules..."
-          npm install --production
-          
-          echo "🚀 Restarting Backend Server via PM2..."
-          # PM2 check karega agar process chal raha hai to reload karega, warna start karega
-          pm2 reload ucollyx-backend-api || pm2 start server.js --name "ucollyx-backend"
-          
-          echo "✨ Backend Deployment Successful on /var/www/ucollyx-app/backend"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: SSH Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ubuntu
+          key: ${{ secrets.KEY }}
+          script: |
+            cd ~/backend
+            git pull origin main
+            npm install
+            pm2 reload ucollyx-backend
