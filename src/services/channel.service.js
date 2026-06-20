@@ -90,8 +90,6 @@ const getUserChannels = async (userId, workspaceId) => {
 };
 
 const addUserToChannel = async (channelId, userId, role = 'member') => {
-
-  console.log(channelId, userId, role)
   const existingMember = await ChannelMember.findOne({
     where: { channel_id: channelId, user_id: userId }
   });

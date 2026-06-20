@@ -107,14 +107,58 @@ const activeProject = async (req, res) => {
 };
 
 
+// const handleUpdateTeam = async (req, res) => {
+
+//     console.log("Hey There:", req.body.members)
+//     try {
+//         const { id } = req.params; 
+//         const { members } = req.body; 
+
+//         await projectService.updateProjectTeam(id, members);
+
+//         res.status(200).json({
+//             success: true,
+//             message: "Team updated successfully"
+//         });
+//     } catch (error) {
+//         res.status(500).json({ success: false, message: error.message });
+//     }
+// };
+
+
 const handleUpdateTeam = async (req, res) => {
-
-    console.log("Hey There:", req.body.members)
+    console.log("Hey There:", req.body.members);
     try {
-        const { id } = req.params; 
-        const { members } = req.body; 
+        const { id } = req.params; // Project ID
+        const { members } = req.body; // Array of member IDs e.g. [3, 5, 8]
 
+        // 1. Service se team update karwalo
         await projectService.updateProjectTeam(id, members);
+
+        // =========================================================
+        // 📡 REAL-TIME DISPATCH: TEAM ALLOCATION UPDATED
+        // =========================================================
+        if (global.io && members && members.length > 0) {
+            try {
+                // Project ka name nikal lo notification mein dikhane ke liye
+                const project = await Project.findByPk(id, { attributes: ["name"] });
+                const projectName = project ? project.name : "New Workspace Context";
+
+                members.forEach((memberId) => {
+                    const targetUserRoom = `user_room:${String(memberId)}`;
+                    
+                    global.io.to(targetUserRoom).emit("project:team_updated", {
+                        projectId: id,
+                        projectName: projectName,
+                        message: `You have been allocated to the project team: "${projectName}".`
+                    });
+                });
+                
+                console.log(`📡 [Team Sync Master] Dispatched real-time allocation events to users:`, members);
+            } catch (socketErr) {
+                console.error("⚠️ Team Update socket emit failed:", socketErr.message);
+            }
+        }
 
         res.status(200).json({
             success: true,
