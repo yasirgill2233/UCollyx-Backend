@@ -187,7 +187,9 @@ const loginUser = async (email, password) => {
   
   if (!user) throw new Error("Invalid email or password");
 
-  if(user?.status !== 'active'){
+  if(user?.status === 'pending'){
+    throw new Error("Your status is not pending, verify through otp")
+  } else if(user?.status !== 'active'){
     throw new Error("Your status is not active for joining")
   }
 

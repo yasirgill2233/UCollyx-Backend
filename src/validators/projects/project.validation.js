@@ -20,7 +20,7 @@ const createProjectSchema = Joi.object({
     .allow('', null)
     .messages({
       'string.max': 'Description cannot exceed 500 characters'
-    }),
+  }),
 
   status: Joi.string()
     .valid('ACTIVE', 'PAUSED', 'ARCHIVED')
