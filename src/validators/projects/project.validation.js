@@ -11,7 +11,7 @@ const createProjectSchema = Joi.object({
       'string.empty': 'Project name cannot be empty',
       'string.min': 'Project name should have at least 3 characters',
       'any.required': 'Project name is a required field',
-      'string.pattern.base': 'Project name invalid',
+      'string.pattern.base': 'Project name only contains alphabets and underscores',
     }),
 
   description: Joi.string()
