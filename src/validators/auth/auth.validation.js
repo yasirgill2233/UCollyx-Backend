@@ -6,7 +6,7 @@ const registerSchema = Joi.object({
     .max(50)
     .trim()
     .required()
-    .pattern(/^#?[a-zA-Z][a-zA-Z0-9-_]*$/) // Sirf alphabets aur spaces allowed hain
+    .pattern(/[a-zA-Z][a-zA-Z0-9-_]*$/) // Sirf alphabets aur spaces allowed hain
     .messages({
       'string.empty': 'Full name cannot be empty',
       'string.min': 'Full name must be at least 3 characters long',
