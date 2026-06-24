@@ -6,7 +6,7 @@ const createProjectSchema = Joi.object({
     .max(100)
     .trim()
     .required()
-    .pattern(/^(?!\d+$).+$/)
+    .pattern(/^#[a-zA-Z][a-zA-Z-_]*$/)
     .messages({
       'string.empty': 'Project name cannot be empty',
       'string.min': 'Project name should have at least 3 characters',
