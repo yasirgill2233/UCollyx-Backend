@@ -188,10 +188,16 @@ const loginUser = async (email, password) => {
   if (!user) throw new Error("Invalid email or password");
 
   if(user?.status === 'pending'){
-    throw new Error("Your status is not pending, verify through otp")
+    throw new Error("Your status is pending, verify through otp")
+  } else if(user?.status === 'rejected'){
+    throw new Error("Your request is rejecetd")
+  } else if(user?.status === 'suspended'){
+    throw new Error("Your are suspended")
+  } else if(user?.status === 'Disabled'){
+    throw new Error("Your are Disabled, and cannot have access")
   } else if(user?.status !== 'active'){
-    throw new Error("Your status is not active for joining")
-  }
+    throw new Error("Your status is not active")
+  } 
 
   const userRequest = await JoinRequest.findOne({
     where: { user_id: user.id },
