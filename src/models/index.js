@@ -30,6 +30,8 @@ const Issue = require('./issue.model.js');
 const IssueComment = require('./issueComment.model.js');
 const IssueAttachment = require('./issueAttachment.model.js');
 
+const Deployment = require('./deployment.model');
+
 const db = {};
 
 db.Sequelize = require('sequelize');
@@ -67,6 +69,8 @@ db.Epic = Epic;
 db.Issue = Issue;
 db.IssueComment = IssueComment;
 db.IssueAttachment = IssueAttachment;
+
+db.Deployment = Deployment;
 
 
 
