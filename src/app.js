@@ -21,6 +21,7 @@ const proxyRoute = require('./routes/proxy.routes');
 const adminRoute = require('./routes/admin.routes');
 const sprintRoutes = require('./routes/sprint.routes');
 const webhookRoutes = require('./routes/webhooks.routes');
+const deploymentRoutes = require('./routes/deployment.routes');
 const organizationRoute = require('./routes/organization.routes');
 
 const app = express();
@@ -50,6 +51,7 @@ app.use('/api/proxy', proxyRoute);
 app.use("/api/sprints", sprintRoutes);
 app.use('/api/admin', adminRoute);
 app.use('/api/webhooks', webhookRoutes);
+app.use('/api/deployments', deploymentRoutes);
 app.use('/api/organizations', organizationRoute);
 
 
