@@ -42,7 +42,7 @@ const Project = sequelize.define(
       references: { model: "users", key: "id" },
     },
     current_sprint: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.INTEGER,
       allowNull: true,
     },
     folder_path: {
@@ -73,6 +73,8 @@ Project.associate = (models) => {
 
   // Project ki sprints
   Project.hasMany(models.Sprint, { foreignKey: "project_id" });
+
+  Project.belongsTo(models.Sprint, { foreignKey: "current_sprint" });
 
   Project.hasMany(models.Meeting, {
     foreignKey: "project_id",

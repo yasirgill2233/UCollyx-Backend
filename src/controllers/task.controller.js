@@ -616,6 +616,8 @@ const updateTaskStatus = async (req, res) => {
 const createTask = async (req, res) => {
     try {
         const newTask = await taskService.createNewTask(req.body);
+
+        console.log("Hey There::::::::::::::::",req.body)
         
         // 🚀 BROADCAST: Safe inject payload directly
         if (global.io && req.body.project_id) {

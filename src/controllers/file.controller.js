@@ -3,6 +3,15 @@ const fs = require('fs-extra');
 const fileService = require('../services/file.service');
 const { Project } = require('../models');
 
+const BANNED_FILES_AND_FOLDERS = [
+  ".ssh",
+  ".npm",
+  ".bash_history",
+  ".git",            // Git metadata ko bhi filter karna behtar hai
+  ".node_repl_history",
+  "node_modules"     // Agar future mein heavy backend nodes hon toh yeh bhi safe zone mein rahe
+];
+
 
 const rootDir = path.join(__dirname, '../../user_projects');
 if (!fs.existsSync(rootDir)) fs.mkdirSync(rootDir);
@@ -43,20 +52,27 @@ const uploadLocalProject = async (req, res) => {
 const getFileTree = async (dirPath) => {
   const stats = await fs.stat(dirPath);
   const info = {
-        id: dirPath,
-        name: path.basename(dirPath),
-    };
+    id: dirPath,
+    name: path.basename(dirPath),
+  };
 
-    if (stats.isDirectory()) {
-        info.type = 'folder';
-        const children = await fs.readdir(dirPath);
-        info.children = await Promise.all(
-            children.map(child => getFileTree(path.join(dirPath, child)))
-        );
-    } else {
-        info.type = 'file';
-    }
-    return info;
+  if (stats.isDirectory()) {
+    info.type = 'folder';
+    
+    // 1. Directory ka content read karo
+    const children = await fs.readdir(dirPath);
+    
+    // ⚡ FILTER ENGINE: Sirf wahi files aage jayengi jo banned list mein nahi hain
+    const allowedChildren = children.filter(child => !BANNED_FILES_AND_FOLDERS.includes(child));
+    
+    // 2. Sirf safe files/folders ka tree recursively build karo
+    info.children = await Promise.all(
+      allowedChildren.map(child => getFileTree(path.join(dirPath, child)))
+    );
+  } else {
+    info.type = 'file';
+  }
+  return info;
 };
 
 const getFileTreeHandler = async (req, res) => {

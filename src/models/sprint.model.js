@@ -10,7 +10,8 @@ const Sprint = sequelize.define('Sprint', {
     project_id: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        references: { model: 'projects', key: 'id' }
+        references: { model: 'projects', key: 'id' },
+        onDelete: "CASCADE",
     },
     name: {
         type: DataTypes.STRING(100),
@@ -25,7 +26,7 @@ const Sprint = sequelize.define('Sprint', {
         allowNull: false
     },
     status: {
-        type: DataTypes.ENUM('active', 'completed'),
+        type: DataTypes.ENUM('active', 'completed', 'planned'),
         defaultValue: 'active'
     }
 }, {

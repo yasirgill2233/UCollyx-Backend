@@ -14,6 +14,15 @@ const Task = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    sprint_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // Nullable kyunki task shuru mein master backlog pool mein ho sakta hai
+      references: {
+        model: "sprints", // Jab table sync ya create ho, toh database exact table target kare
+        key: "id",
+      },
+      onDelete: "SET NULL", // Agar sprint delete ho jaye, toh task safe rahe aur null ho jaye
+    },
     title: {
       type: DataTypes.STRING(255),
       allowNull: false,
@@ -59,6 +68,8 @@ Task.associate = (models) => {
     foreignKey: "task_id",
     as: "assignees",
   });
+
+  Task.belongsTo(models.Sprint, { foreignKey: "sprint_id", as: "sprint" });
 
   Task.hasMany(models.Subtask, { foreignKey: "task_id", as: "subtasks" });
   Task.hasMany(models.TaskComment, { foreignKey: "task_id", as: "comments" });

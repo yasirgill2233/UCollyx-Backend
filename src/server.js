@@ -33,7 +33,7 @@ const startServer = async () => {
     await db.sequelize.authenticate();
     console.log("💾 Database Connected & Synced natively!");
 
-    // db.sequelize.sync({ force: true })
+  // db.sequelize.sync({ alter: true })
   // .then(() => {
   //   console.log("Sare tables kamyabi se sync (create) ho gaye hain!");
   // })

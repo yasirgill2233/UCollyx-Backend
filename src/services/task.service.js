@@ -210,6 +210,7 @@ const createNewTask = async (taskData) => {
 };
 
 const updateTaskInDB = async (taskId, updatedData) => {
+  
   const task = await Task.findByPk(taskId);
   if (!task) return null;
 

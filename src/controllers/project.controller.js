@@ -1,8 +1,6 @@
 const projectService = require('../services/project.service');
 
 const createProject = async (req, res) => {
-
-    console.log("Hey................",req.body);
     try {
         const workspaceId = req.user.workspace_id;
         const creatorId = req.user.id;
@@ -174,6 +172,8 @@ const getManagerPortfolio = async (req, res, next) => {
   try {
     const managerId = req.user.id; 
     const portfolio = await projectService.fetchManagerPortfolio(managerId);
+
+    console.log("HHHHHHHHHHHHHHHHHHH:::::::",portfolio, managerId)
     return res.status(200).json({
       success: true,
       message: "Manager portfolio matrix synchronized successfully.",
