@@ -15,7 +15,7 @@ router.post('/pipeline-status', async (req, res) => {
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
-    
+
 });
 
 module.exports = router;

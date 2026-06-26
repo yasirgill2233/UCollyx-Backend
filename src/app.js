@@ -52,6 +52,7 @@ app.use('/api/admin', adminRoute);
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/organizations', organizationRoute);
 
+
 // Logos folder static mapping
 app.use('/uploads/avatars', express.static(path.join(__dirname, '../uploads/avatars')));
 app.use('/uploads/logos', express.static(path.join(__dirname, '../uploads/logos')));
