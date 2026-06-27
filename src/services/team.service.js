@@ -1,7 +1,7 @@
 const { Project, Task, Subtask, User } = require('../models');
 
 const getProjectDashboardData = async (projectId, userId, workpaceId) => {
-  console.log("###############",userId, workpaceId)
+  console.log("###############",projectId,userId, workpaceId)
   try {
     const projectData = await Project.findOne({
       where: {name: projectId, workspace_id: workpaceId },

@@ -377,6 +377,8 @@ const issueController = {
       const { projectId } = req.params;
       const workspaceId = req.user.workspace_id;
       const issues = await issueService.getProjectIssues(projectId, workspaceId);
+
+      console.log("################################@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@::::::::::::::::",issues)
       return res.status(200).json({ success: true, data: issues });
     } catch (error) {
       return res.status(500).json({ success: false, message: error.message });
