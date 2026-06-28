@@ -185,6 +185,27 @@ const getManagerPortfolio = async (req, res, next) => {
   }
 };
 
+
+const getDeveloperDashboard = async (req, res, next) => {
+  try {
+
+    const userId = req.user.id;
+        const workspaceId = req.user.workspace_id;
+        
+    const portfolio = await projectService.fetchDeveloperDashboard(userId, workspaceId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Manager portfolio matrix synchronized successfully.",
+      data: portfolio
+    });
+  } catch (error) {
+    console.error("Error inside getManagerPortfolio Controller:", error);
+    next(error);
+  }
+};
+
+
 const getProjectDetails = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -206,5 +227,6 @@ module.exports = {
     getMyProjects,
     activeProject,
     getManagerPortfolio,
-    getProjectDetails
+    getProjectDetails,
+    getDeveloperDashboard
 };
