@@ -23,6 +23,7 @@ const sprintRoutes = require('./routes/sprint.routes');
 const webhookRoutes = require('./routes/webhooks.routes');
 const deploymentRoutes = require('./routes/deployment.routes');
 const organizationRoute = require('./routes/organization.routes');
+const permissionRoutes = require('./routes/permissions.routes');
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use("/api/sprints", sprintRoutes);
 app.use('/api/admin', adminRoute);
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/deployments', deploymentRoutes);
+app.use('/api/permissions', permissionRoutes);
 app.use('/api/organizations', organizationRoute);
 
 

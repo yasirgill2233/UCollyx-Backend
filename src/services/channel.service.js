@@ -89,13 +89,19 @@ const getUserChannels = async (userId, workspaceId) => {
   }
 };
 
-const addUserToChannel = async (channelId, userId, role = 'member') => {
+const addUserToChannel = async (channelId, userId, role = 'member', mainAdmin) => {
   const existingMember = await ChannelMember.findOne({
     where: { channel_id: channelId, user_id: userId }
   });
 
   if (existingMember) {
     const error = new Error('User is already a member of this channel');
+    error.status = 400;
+    throw error;
+  }
+
+  if(mainAdmin !== 'admin'){
+    const error = new Error('Only group admin can add members');
     error.status = 400;
     throw error;
   }

@@ -30,6 +30,9 @@ const Issue = require('./issue.model.js');
 const IssueComment = require('./issueComment.model.js');
 const IssueAttachment = require('./issueAttachment.model.js');
 
+const Permission = require('./permission.model.js');
+const WorkspacePermission = require('./workspacePermission.model.js');
+
 const Deployment = require('./deployment.model');
 
 const db = {};
@@ -70,9 +73,10 @@ db.Issue = Issue;
 db.IssueComment = IssueComment;
 db.IssueAttachment = IssueAttachment;
 
+db.Permission = Permission;
+db.WorkspacePermission = WorkspacePermission;
+
 db.Deployment = Deployment;
-
-
 
 Object.keys(db).forEach((modelName) => {
     if (db[modelName].associate) {

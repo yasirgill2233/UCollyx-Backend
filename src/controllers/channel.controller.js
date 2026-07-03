@@ -50,7 +50,7 @@ const getMyChannels = async (req, res) => {
 const addChannelMember = async (req, res) => {
   console.log("Add member request body:", req.body);
   try {
-    const { channelId, userId, role } = req.body;
+    const { channelId, userId, role, mainAdmin} = req.body;
 
 
     if (!channelId || !userId) {
@@ -60,7 +60,7 @@ const addChannelMember = async (req, res) => {
       });
     }
 
-    const newMember = await channelService.addUserToChannel(channelId, userId, role);
+    const newMember = await channelService.addUserToChannel(channelId, userId, role, mainAdmin);
 
     await notificationServices.sendJoinNotification(channelId, userId, role);
 
