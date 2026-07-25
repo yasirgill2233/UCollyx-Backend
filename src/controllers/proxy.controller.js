@@ -113,17 +113,20 @@ const handlePreview = (req, res) => {
 
   const targetUrl = `http://localhost:${projectMeta.port}`;
 
-  // 🪓 FIX 2: Strip out '/preview/:projectId' completely from URL string
-  // So Vite container receives clean asset routes (e.g., '/assets/main.js')
-  const prefixToRemove = `/preview/${projectId}`;
+  //   const prefixToRemove = `/preview/${projectId}`;
+  const prefixToRemove = `/api/proxy/${projectId}`;
   if (req.url.startsWith(prefixToRemove)) {
     req.url = req.url.slice(prefixToRemove.length);
   }
 
-  // Safeguard to guarantee trailing or root slash
+  //   Safeguard to guarantee trailing or root slash
   if (req.url === "" || !req.url.startsWith("/")) {
     req.url = "/" + req.url;
   }
+
+  //   if (req.url === "") {
+  // req.url = "/";
+  //   }
 
   // 🔀 Inject transmission proxy mapping internally
   proxy.web(req, res, { target: targetUrl }, (err) => {
