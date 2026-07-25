@@ -111,7 +111,7 @@ const handlePreview = (req, res) => {
         `);
   }
 
-  const targetUrl = `http://localhost:${projectMeta.port}`;
+  const targetUrl = `http://localhost:${projectMeta.port}`; 
 
   //   const prefixToRemove = `/preview/${projectId}`;
   const prefixToRemove = `/api/proxy/${projectId}`;
