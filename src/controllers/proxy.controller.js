@@ -111,25 +111,25 @@ const handlePreview = (req, res) => {
         `);
   }
 
-  const targetUrl = `http://localhost:${projectMeta.port}`; 
+  const targetUrl = `http://localhost:${projectMeta.port}`;
 
-const prefix = `/api/proxy/${projectId}`;
+  const prefix = `/api/proxy/${projectId}`;
 
-req.url = req.originalUrl.replace(prefix, "");
+  req.url = req.originalUrl.replace(prefix, "");
 
-if (req.url === "") {
+  if (req.url === "") {
     req.url = "/";
-}
+  }
 
-console.log("Original :", req.originalUrl);
-console.log("Forward  :", req.url);
+  console.log("Original :", req.originalUrl);
+  console.log("Forward  :", req.url);
 
   console.log("==================================");
-console.log("Original URL :", req.originalUrl);
-console.log("Current URL  :", req.url);
-console.log("Project ID   :", projectId);
-console.log("Target       :", targetUrl);
-console.log("==================================");
+  console.log("Original URL :", req.originalUrl);
+  console.log("Current URL  :", req.url);
+  console.log("Project ID   :", projectId);
+  console.log("Target       :", targetUrl);
+  console.log("==================================");
 
   // 🔀 Inject transmission proxy mapping internally
   proxy.web(req, res, { target: targetUrl }, (err) => {
