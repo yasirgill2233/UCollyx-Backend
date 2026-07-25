@@ -120,13 +120,13 @@ const handlePreview = (req, res) => {
   }
 
   //   Safeguard to guarantee trailing or root slash
-  if (req.url === "" || !req.url.startsWith("/")) {
-    req.url = "/" + req.url;
-  }
+//   if (req.url === "" || !req.url.startsWith("/")) {
+//     req.url = "/" + req.url;
+//   }
 
-  // if (req.url === "") {
-  //    req.url = "/";
-  // } 
+  if (req.url === "") {
+     req.url = "/";
+  } 
 
   console.log("==================================");
 console.log("Original URL :", req.originalUrl);
