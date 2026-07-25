@@ -23,39 +23,39 @@ proxy.on("error", (err, req, res) => {
   }
 });
 
-proxy.on("proxyRes", (proxyRes, req, res) => {
-  const chunks = [];
+// proxy.on("proxyRes", (proxyRes, req, res) => {
+//   const chunks = [];
 
-  proxyRes.on("data", (chunk) => {
-    chunks.push(chunk);
-  });
+//   proxyRes.on("data", (chunk) => {
+//     chunks.push(chunk);
+//   });
 
-  proxyRes.on("end", () => {
-    let body = Buffer.concat(chunks);
+//   proxyRes.on("end", () => {
+//     let body = Buffer.concat(chunks);
 
-    const contentType = proxyRes.headers["content-type"] || "";
+//     const contentType = proxyRes.headers["content-type"] || "";
 
-    if (contentType.includes("text/html")) {
-      let html = body.toString("utf8");
+//     if (contentType.includes("text/html")) {
+//       let html = body.toString("utf8");
 
-      const projectId = req.params.projectId;
-      const prefix = `/api/proxy/${projectId}`;
+//       const projectId = req.params.projectId;
+//       const prefix = `/api/proxy/${projectId}`;
 
-      html = html
-        .replace(/"\/@vite\/client"/g, `"${prefix}/@vite/client"`)
-        .replace(/"\/src\//g, `"${prefix}/src/`)
-        .replace(/"\/node_modules\//g, `"${prefix}/node_modules/`)
-        .replace(/"\/favicon\.svg"/g, `"${prefix}/favicon.svg"`)
-        .replace(/"\/@react-refresh"/g, `"${prefix}/@react-refresh"`);
+//       html = html
+//         .replace(/"\/@vite\/client"/g, `"${prefix}/@vite/client"`)
+//         .replace(/"\/src\//g, `"${prefix}/src/`)
+//         .replace(/"\/node_modules\//g, `"${prefix}/node_modules/`)
+//         .replace(/"\/favicon\.svg"/g, `"${prefix}/favicon.svg"`)
+//         .replace(/"\/@react-refresh"/g, `"${prefix}/@react-refresh"`);
 
-      res.writeHead(proxyRes.statusCode, proxyRes.headers);
-      return res.end(html);
-    }
+//       res.writeHead(proxyRes.statusCode, proxyRes.headers);
+//       return res.end(html);
+//     }
 
-    res.writeHead(proxyRes.statusCode, proxyRes.headers);
-    res.end(body);
-  });
-});
+//     res.writeHead(proxyRes.statusCode, proxyRes.headers);
+//     res.end(body);
+//   });
+// });
 
 const handlePreview = (req, res) => {
   const projectId = req.params.projectId;
