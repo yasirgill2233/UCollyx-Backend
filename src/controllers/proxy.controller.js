@@ -128,6 +128,13 @@ const handlePreview = (req, res) => {
   //    req.url = "/";
   // } 
 
+  console.log("==================================");
+console.log("Original URL :", req.originalUrl);
+console.log("Current URL  :", req.url);
+console.log("Project ID   :", projectId);
+console.log("Target       :", targetUrl);
+console.log("==================================");
+
   // 🔀 Inject transmission proxy mapping internally
   proxy.web(req, res, { target: targetUrl }, (err) => {
     console.error(`❌ Proxy Failed on port ${projectMeta.port}:`, err.message);
