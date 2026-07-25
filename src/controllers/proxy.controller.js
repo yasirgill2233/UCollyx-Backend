@@ -124,9 +124,9 @@ const handlePreview = (req, res) => {
     req.url = "/" + req.url;
   }
 
-  //   if (req.url === "") {
-  // req.url = "/";
-  //   } 
+  // if (req.url === "") {
+  //    req.url = "/";
+  // } 
 
   // 🔀 Inject transmission proxy mapping internally
   proxy.web(req, res, { target: targetUrl }, (err) => {
