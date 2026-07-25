@@ -113,20 +113,16 @@ const handlePreview = (req, res) => {
 
   const targetUrl = `http://localhost:${projectMeta.port}`; 
 
-  //   const prefixToRemove = `/preview/${projectId}`;
-  const prefixToRemove = `/api/proxy/${projectId}`;
-  if (req.url.startsWith(prefixToRemove)) {
-    req.url = req.url.slice(prefixToRemove.length);
-  }
+const prefix = `/api/proxy/${projectId}`;
 
-  //   Safeguard to guarantee trailing or root slash
-//   if (req.url === "" || !req.url.startsWith("/")) {
-//     req.url = "/" + req.url;
-//   }
+req.url = req.originalUrl.replace(prefix, "");
 
-  if (req.url === "") {
-     req.url = "/";
-  } 
+if (req.url === "") {
+    req.url = "/";
+}
+
+console.log("Original :", req.originalUrl);
+console.log("Forward  :", req.url);
 
   console.log("==================================");
 console.log("Original URL :", req.originalUrl);
