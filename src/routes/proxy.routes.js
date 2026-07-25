@@ -3,6 +3,7 @@ const router = express.Router();
 
 const proxyController = require('../controllers/proxy.controller');
 
-router.get('/', proxyController.handlePreview);
+// router.get('/', proxyController.handlePreview);
+router.get("/:projectId/*", proxyController.handlePreview);
 
 module.exports = router;
