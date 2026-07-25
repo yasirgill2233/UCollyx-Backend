@@ -14,8 +14,12 @@ const proxy = httpProxy.createProxyServer({
 });
 
 proxy.on("error", (err, req, res) => {
-  if (res && !res.headersSent && typeof res.status === "function") {
-    res.status(503).send("Proxy transmission temporarily interrupted.");
+  console.error("========== PROXY ERROR ==========");
+  console.error(err);
+  console.error("=================================");
+
+  if (res && !res.headersSent) {
+    res.status(503).send(err.message);
   }
 });
 
