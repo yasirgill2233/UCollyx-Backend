@@ -105,7 +105,9 @@ const handlePreview = (req, res) => {
     const urlString = req.url;
 
     // 🔍 FIX 1: Exact matching for '/preview/:projectId' routing
-    const match = urlString.match(/^\/preview\/([^\/]+)/);
+    // const match = urlString.match(/^\/preview\/([^\/]+)/);
+
+    const match = urlString.match(/^\/([^\/]+)/);
 
     if (!match) {
         return res.status(400).send("Invalid preview format. Missing Project Slug.");
@@ -132,7 +134,7 @@ const handlePreview = (req, res) => {
 
     // 🪓 FIX 2: Strip out '/preview/:projectId' completely from URL string
     // So Vite container receives clean asset routes (e.g., '/assets/main.js')
-    const prefixToRemove = `/preview/${projectId}`;
+    const prefixToRemove = `/${projectId}`;
     if (req.url.startsWith(prefixToRemove)) {
         req.url = req.url.slice(prefixToRemove.length);
     }

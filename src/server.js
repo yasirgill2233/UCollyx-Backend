@@ -36,7 +36,7 @@ const startServer = async () => {
   // db.sequelize.sync({ alter: true })
 
 
-  // Database Sync logic wale block mein (e.g., server.js ya jahan sync call ho rha hai)
+// Database Sync logic wale block mein (e.g., server.js ya jahan sync call ho rha hai)
 // db.sequelize.sync({ alter: true }).then(async () => {
 //   console.log("🚀 Database connected and synced successfully!");
 
