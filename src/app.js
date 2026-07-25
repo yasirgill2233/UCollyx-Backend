@@ -28,19 +28,9 @@ const permissionRoutes = require('./routes/permissions.routes');
 const app = express();
 
 // app.use(helmet()); // Security headers ke liye
-// app.use(helmet({
-//   crossOriginResourcePolicy: { policy: "cross-origin" }
-// }));
-
-// app.use(helmet());
-
-app.use(
-  helmet({
-    contentSecurityPolicy: false,
-    crossOriginResourcePolicy: false,
-  })
-);
-
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(cors());   // Cross-origin requests allow karne ke liye
 app.use(morgan('dev')); // Console mein requests log karne ke liye
 app.use(express.json()); // JSON data handle karne ke liye
