@@ -2,69 +2,33 @@ const path = require("path");
 const httpProxy = require("http-proxy");
 const { getProjectMeta } = require("../../projectDetector");
 
-// const proxy = httpProxy.createProxyServer({
-//   changeOrigin: true,
-//   ws: true,
-// });
-
 const proxy = httpProxy.createProxyServer({
   changeOrigin: true,
   ws: true,
-  selfHandleResponse: true,
 });
 
 proxy.on("error", (err, req, res) => {
-  console.error("========== PROXY ERROR ==========");
-  console.error(err);
-  console.error("=================================");
 
-  if (res && !res.headersSent) {
-    res.status(503).send(err.message);
-  }
+    console.error("========== PROXY ERROR ==========");
+    console.error(err);
+    console.error("=================================");
+
+    if (!res.headersSent) {
+        res.status(503).send("Sandbox is starting...");
+    }
+
 });
 
-// proxy.on("proxyRes", (proxyRes, req, res) => {
-//   const chunks = [];
-
-//   proxyRes.on("data", (chunk) => {
-//     chunks.push(chunk);
-//   });
-
-//   proxyRes.on("end", () => {
-//     let body = Buffer.concat(chunks);
-
-//     const contentType = proxyRes.headers["content-type"] || "";
-
-//     if (contentType.includes("text/html")) {
-//       let html = body.toString("utf8");
-
-//       const projectId = req.params.projectId;
-//       const prefix = `/api/proxy/${projectId}`;
-
-//       html = html
-//         .replace(/"\/@vite\/client"/g, `"${prefix}/@vite/client"`)
-//         .replace(/"\/src\//g, `"${prefix}/src/`)
-//         .replace(/"\/node_modules\//g, `"${prefix}/node_modules/`)
-//         .replace(/"\/favicon\.svg"/g, `"${prefix}/favicon.svg"`)
-//         .replace(/"\/@react-refresh"/g, `"${prefix}/@react-refresh"`);
-
-//       res.writeHead(proxyRes.statusCode, proxyRes.headers);
-//       return res.end(html);
-//     }
-
-//     res.writeHead(proxyRes.statusCode, proxyRes.headers);
-//     res.end(body);
-//   });
-// });
-
 const handlePreview = (req, res) => {
-  const projectId = req.params.projectId;
+const host = req.hostname.toLowerCase();
 
-  if (!projectId) {
-    return res.status(400).send("Missing Project Slug.");
-  }
+if (!host.endsWith(".preview.ucollyx.com")) {
+    return res.status(400).send("Invalid Preview Host");
+}
 
-  const projectPath = path.join(__dirname, "..", "user-projects", projectId);
+const projectId = host.replace(".preview.ucollyx.com", "");
+
+  const projectPath = path.join(__dirname, "..", "user_projects", projectId);
   const projectMeta = getProjectMeta(projectPath, projectId);
 
   if (!projectMeta || !projectMeta.port) {
@@ -80,16 +44,14 @@ const handlePreview = (req, res) => {
 
   const targetUrl = `http://localhost:${projectMeta.port}`;
 
-  const prefix = `/api/proxy/${projectId}`;
-
-  req.url = req.originalUrl.replace(prefix, "");
-
   if (req.url === "") {
     req.url = "/";
   }
 
   proxy.web(req, res, {
     target: targetUrl,
+    proxyTimeout: 300000,
+    timeout: 300000,
   });
 };
 
