@@ -41,6 +41,12 @@ app.use(cors());   // Cross-origin requests allow karne ke liye
 app.use(morgan('dev')); // Console mein requests log karne ke liye
 app.use(express.json()); // JSON data handle karne ke liye
 
+app.use('/uploads/avatars', express.static(path.join(__dirname, '../uploads/avatars')));
+app.use('/uploads/logos', express.static(path.join(__dirname, '../uploads/logos')));
+app.use('/uploads/audio', express.static(path.join(__dirname, '../uploads/audio')));
+app.use('/uploads/attachments', express.static(path.join(__dirname, '../uploads/attachments')));
+app.use('/uploads/issues', express.static(path.join(__dirname, '../uploads/issues')));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes)
 app.use('/api/workspace', workspaceRoutes)
@@ -60,15 +66,7 @@ app.use('/api/webhooks', webhookRoutes);
 app.use('/api/deployments', deploymentRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/organizations', organizationRoute);
+
 app.use(proxyRoute);
-
-
-// Logos folder static mapping
-app.use('/uploads/avatars', express.static(path.join(__dirname, '../uploads/avatars')));
-app.use('/uploads/logos', express.static(path.join(__dirname, '../uploads/logos')));
-app.use('/uploads/audio', express.static(path.join(__dirname, '../uploads/audio')));
-app.use('/uploads/attachments', express.static(path.join(__dirname, '../uploads/attachments')));
-app.use('/uploads/issues', express.static(path.join(__dirname, '../uploads/issues')));
-
 
 module.exports = app;
