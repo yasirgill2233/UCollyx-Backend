@@ -27,15 +27,13 @@ const permissionRoutes = require('./routes/permissions.routes');
 
 const app = express();
 
-// app.use(helmet()); // Security headers ke liye
-// app.use(helmet({
-//   crossOriginResourcePolicy: { policy: "cross-origin" }
-// }));
-
 app.use(
   helmet({
     contentSecurityPolicy: false,
-    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginResourcePolicy: {
+      policy: "cross-origin",
+    },
+    frameguard: false, // <-- Ye line add karo
   })
 );
 
