@@ -56,13 +56,13 @@ app.use('/api/team', teamRoute);
 app.use('/api/issues', issueRoute);
 app.use('/api/git', gitRoute);
 app.use('/api/files', fileRoute);
-app.use('/api/proxy', proxyRoute);
 app.use("/api/sprints", sprintRoutes);
 app.use('/api/admin', adminRoute);
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/deployments', deploymentRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/organizations', organizationRoute);
+app.use(proxyRoute);
 
 
 // Logos folder static mapping

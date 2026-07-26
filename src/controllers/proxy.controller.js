@@ -8,25 +8,23 @@ const proxy = httpProxy.createProxyServer({
 });
 
 proxy.on("error", (err, req, res) => {
+  console.error("========== PROXY ERROR ==========");
+  console.error(err);
+  console.error("=================================");
 
-    console.error("========== PROXY ERROR ==========");
-    console.error(err);
-    console.error("=================================");
-
-    if (!res.headersSent) {
-        res.status(503).send("Sandbox is starting...");
-    }
-
+  if (!res.headersSent) {
+    res.status(503).send("Sandbox is starting...");
+  }
 });
 
 const handlePreview = (req, res) => {
-const host = req.hostname.toLowerCase();
+  const host = req.hostname.toLowerCase();
 
-if (!host.endsWith(".preview.ucollyx.com")) {
+  if (!host.endsWith(".preview.ucollyx.com")) {
     return res.status(400).send("Invalid Preview Host");
-}
+  }
 
-const projectId = host.replace(".preview.ucollyx.com", "");
+  const projectId = host.replace(".preview.ucollyx.com", "");
 
   const projectPath = path.join(__dirname, "..", "user_projects", projectId);
   const projectMeta = getProjectMeta(projectPath, projectId);
@@ -47,6 +45,12 @@ const projectId = host.replace(".preview.ucollyx.com", "");
   if (req.url === "") {
     req.url = "/";
   }
+
+  console.log("Host:", req.hostname);
+  console.log("Project:", projectId);
+  console.log("URL:", req.url);
+  console.log("Target:", targetUrl);
+  console.log(projectMeta);
 
   proxy.web(req, res, {
     target: targetUrl,
