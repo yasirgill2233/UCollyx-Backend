@@ -13,7 +13,176 @@ proxy.on("error", (err, req, res) => {
   console.error("=================================");
 
   if (!res.headersSent) {
-    res.status(503).send("Sandbox is starting...");
+    return res.status(503).send(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Starting Sandbox...</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:#09090b;
+    font-family:Inter,Segoe UI,sans-serif;
+    color:white;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    width:100vw;
+    height:100vh;
+    overflow:hidden;
+}
+
+.card{
+
+    width:420px;
+    max-width:90%;
+
+    background:#18181b;
+
+    border:1px solid rgba(255,255,255,.08);
+
+    border-radius:18px;
+
+    padding:40px;
+
+    text-align:center;
+
+    box-shadow:
+        0 0 60px rgba(59,130,246,.15);
+
+}
+
+.logo{
+
+    width:70px;
+    height:70px;
+
+    margin:auto;
+    margin-bottom:25px;
+
+    border-radius:50%;
+
+    border:4px solid #3b82f6;
+    border-top-color:transparent;
+
+    animation:spin .9s linear infinite;
+
+}
+
+h2{
+
+    font-size:24px;
+    margin-bottom:12px;
+
+}
+
+p{
+
+    color:#a1a1aa;
+    line-height:1.7;
+
+}
+
+.progress{
+
+    margin-top:30px;
+
+    width:100%;
+    height:8px;
+
+    background:#27272a;
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+}
+
+.bar{
+
+    height:100%;
+
+    width:35%;
+
+    border-radius:20px;
+
+    background:linear-gradient(
+        90deg,
+        #2563eb,
+        #3b82f6,
+        #60a5fa
+    );
+
+    animation:loading 1.3s infinite;
+}
+
+small{
+
+    display:block;
+    margin-top:25px;
+    color:#71717a;
+    font-size:13px;
+
+}
+
+@keyframes loading{
+
+0%{
+transform:translateX(-120%);
+}
+
+100%{
+transform:translateX(320%);
+}
+
+}
+
+@keyframes spin{
+
+100%{
+transform:rotate(360deg);
+}
+
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="logo"></div>
+
+<h2>Starting Sandbox...</h2>
+
+<p>
+Your project container is being initialized.<br>
+This usually takes only a few seconds.
+</p>
+
+<div class="progress">
+<div class="bar"></div>
+</div>
+
+<small>
+Powered by <b>UCollyx Sandbox Engine</b>
+</small>
+
+</div>
+
+</body>
+</html>
+`);
   }
 });
 
