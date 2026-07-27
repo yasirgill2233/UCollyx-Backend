@@ -103,7 +103,7 @@
 //       if (actualProjectPath && !activeProjectWatchers[projectId]) {
 //         const chokidar = await import("chokidar");
 //         const watcher = chokidar.default.watch(actualProjectPath, { persistent: true, ignoreInitial: true });
-        
+
 //         watcher.on("all", (event, filePath) => {
 //           const relativePath = path.relative(actualProjectPath, filePath);
 //           const parentFolder = path.dirname(relativePath);
@@ -175,12 +175,12 @@
 //       console.log(`🔌 Shell Instance Terminated for: ${socket.id}`);
 //       socket.ptyProcess.kill();
 //     }
-    
+
 //     // 2. Remove user from workspace active listings
 //     const pId = socket.currentProject;
 //     if (pId && activeFolderUsers[pId]?.[socket.id]) {
 //       delete activeFolderUsers[pId][socket.id];
-      
+
 //       // If project room gets empty, close file tree chokidar system
 //       if (Object.keys(activeFolderUsers[pId]).length === 0) {
 //         if (activeProjectWatchers[pId]) {
@@ -193,20 +193,6 @@
 //     }
 //   });
 // };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 const path = require("path");
 const fs = require("fs");
@@ -403,26 +389,6 @@ module.exports = (io, socket) => {
     });
   });
 
-  // socket.on("terminal:init", async (payload) => {
-  //   let projectId = payload?.projectId || payload;
-  //   let isBrowsed = payload?.isBrowsed || false;
-  //   if (!projectId) return;
-
-  //   if (socket.ptyProcess) {
-  //     if (socket.allocatedPort) occupiedPorts.delete(socket.allocatedPort);
-  //     socket.ptyProcess.kill();
-  //   }
-
-  //   try {
-  //     const ptyProcess = await spawnTerminal(projectId, socket, isBrowsed);
-  //     socket.ptyProcess = ptyProcess;
-  //     ptyProcess.onData((data) => socket.emit("terminal:data", data));
-  //     ptyProcess.on("exit", () => socket.emit("terminal:data", "\r\n[UCollyx Container Exited]\r\n"));
-  //   } catch (err) {
-  //     socket.emit("terminal:data", `\r\n❌ Deployment Failure: ${err.message}\r\n`);
-  //   }
-  // });
-
   socket.on("terminal:init", async (payload) => {
     const projectId = payload.projectId;
     const terminalId = payload.terminalId;
@@ -454,12 +420,17 @@ module.exports = (io, socket) => {
       });
 
       ptyProcess.on("exit", () => {
+        const terminal = socket.terminals.get(terminalId);
+
+        if (terminal) {
+          occupiedPorts.delete(terminal.port);
+          socket.terminals.delete(terminalId);
+        }
+
         socket.emit("terminal:data", {
           terminalId,
           data: "\r\n[Terminal Closed]\r\n",
         });
-
-        socket.terminals.delete(terminalId);
       });
     } catch (err) {
       socket.emit("terminal:data", {
@@ -468,10 +439,6 @@ module.exports = (io, socket) => {
       });
     }
   });
-
-  // socket.on("terminal:write", (data) => {
-  //   if (socket.ptyProcess) socket.ptyProcess.write(data);
-  // });
 
   socket.on("terminal:write", ({ terminalId, data }) => {
     const terminal = socket.terminals.get(terminalId);
@@ -507,26 +474,17 @@ module.exports = (io, socket) => {
     }
   });
 
-  // 🎯 CRITICAL SYSTEM HARD CLEANUP ON CONNECTION DROP
   socket.on("disconnect", () => {
-    // 1. Kill isolated Docker shell process smoothly
-    // if (socket.ptyProcess) {
-    //   console.log(`🔌 Shell Instance Terminated for: ${socket.id}`);
-    //   socket.ptyProcess.kill();
-    // }
-
     for (const terminal of socket.terminals.values()) {
       terminal.pty.kill();
       occupiedPorts.delete(terminal.port);
     }
     socket.terminals.clear();
 
-    // 2. Remove user from workspace active listings
     const pId = socket.currentProject;
     if (pId && activeFolderUsers[pId]?.[socket.id]) {
       delete activeFolderUsers[pId][socket.id];
 
-      // If project room gets empty, close file tree chokidar system
       if (Object.keys(activeFolderUsers[pId]).length === 0) {
         if (activeProjectWatchers[pId]) {
           activeProjectWatchers[pId].close();
