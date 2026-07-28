@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
+const Groq = require('groq-sdk');
 
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
@@ -40,6 +41,55 @@ app.use(
 app.use(cors());   // Cross-origin requests allow karne ke liye
 app.use(morgan('dev')); // Console mein requests log karne ke liye
 app.use(express.json()); // JSON data handle karne ke liye
+
+// Groq Client Setup
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
+
+// AI Text / Code Generation Route
+app.post('/api/ai/generate', async (req, res) => {
+  try {
+    const { prompt } = req.body;
+
+    if (!prompt) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Prompt required hai.' 
+      });
+    }
+
+    // Call Groq Llama 3 Model
+    const completion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an expert coding assistant and AI helper for UCollyx platform. Provide clean, concise code and helpful answers.',
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      // Llama 3.3 70B Fast & Smart Model
+      model: 'llama-3.3-70b-versatile',
+      temperature: 0.6,
+    });
+
+    const aiResponse = completion.choices[0]?.message?.content || 'No response generated.';
+
+    res.json({
+      success: true,
+      response: aiResponse,
+    });
+  } catch (error) {
+    console.error('Groq API Error:', error.message || error);
+    res.status(500).json({
+      success: false,
+      error: 'AI service se connect karne mein issue aaya.',
+    });
+  }
+});
 
 app.use('/uploads/avatars', express.static(path.join(__dirname, '../uploads/avatars')));
 app.use('/uploads/logos', express.static(path.join(__dirname, '../uploads/logos')));
