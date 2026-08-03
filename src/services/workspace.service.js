@@ -177,10 +177,10 @@ const createWorkspace = async (data, ownerId) => {
 
     // B. Find or Create System AI Bot User
     let [aiBotUser] = await User.findOrCreate({
-      where: { email: "ai-bot@ucollyx.com" },
+      where: { email: "ai.bot@ucollyx.com" },
       defaults: {
         full_name: "UCollyx AI Assistant",
-        email: "ai-bot@ucollyx.com",
+        email: "ai.bot@ucollyx.com",
         password: "123abc!@#ABC123abc!@#ABC",
         role: "member",
         status: "active",
@@ -192,7 +192,7 @@ const createWorkspace = async (data, ownerId) => {
     // C. Create AI Direct Message Channel
     const aiDmChannel = await Channel.create(
       {
-        name: `#ai-assistant-${ownerId}`,
+        name: `#aiassistant`,
         description: "Direct message with UCollyx AI Pair Programmer.",
         type: "public",
         is_private: true,
@@ -211,17 +211,17 @@ const createWorkspace = async (data, ownerId) => {
     );
 
     // D. Welcome Message from AI inside the DM
-    if (Message) {
-      await Message.create(
-        {
-          channel_id: aiDmChannel.id,
-          sender_id: aiBotUser.id,
-          receiver_id: ownerId,
-          content: `👋 Hi! Welcome to **${workspace.name}**! I am your AI assistant powered by Groq Llama 3. Ask me anything about your code, workspace tasks, or debugging!`,
-        },
-        { transaction }
-      );
-    }
+    // if (Message) {
+    //   await Message.create(
+    //     {
+    //       channel_id: aiDmChannel.id,
+    //       sender_id: aiBotUser.id,
+    //       receiver_id: ownerId,
+    //       content: `👋 Hi! Welcome to **${workspace.name}**! I am your AI assistant powered by Groq Llama 3. Ask me anything about your code, workspace tasks, or debugging!`,
+    //     },
+    //     { transaction }
+    //   );
+    // }
 
 
     await transaction.commit();
