@@ -174,7 +174,6 @@ const createWorkspace = async (data, ownerId) => {
       );
     }
 
-
     await transaction.commit();
     return workspace;
   } catch (error) {
