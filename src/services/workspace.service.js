@@ -7,6 +7,7 @@ const {
   User,
   Project,
   ProjectMember,
+  Channel,
 } = require("../models");
 
 const { Op } = require("sequelize");
@@ -134,6 +135,44 @@ const createWorkspace = async (data, ownerId) => {
       },
       { transaction },
     );
+
+
+    // ========================================================
+    // AUTO-CREATE DEFAULT CHANNELS & AI DM
+    // ========================================================
+
+    // A. Create #announcements and #random channels
+    const defaultChannelsData = [
+      {
+        name: "#announcements",
+        description: "Official announcements and workspace updates.",
+        type: "public",
+        is_private: false,
+        created_by: ownerId,
+      },
+      {
+        name: "#random",
+        description: "Non-work banter, watercooler conversations, and fun!",
+        type: "public",
+        is_private: false,
+        created_by: ownerId,
+      },
+    ];
+
+    for (const chanData of defaultChannelsData) {
+      const channel = await Channel.create(chanData, { transaction });
+
+      await ChannelMember.create(
+        {
+          channel_id: channel.id,
+          user_id: ownerId,
+          role_in_channel: "admin",
+          is_muted: false,
+        },
+        { transaction }
+      );
+    }
+
 
     await transaction.commit();
     return workspace;
