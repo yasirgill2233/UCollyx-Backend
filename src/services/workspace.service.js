@@ -192,7 +192,7 @@ const createWorkspace = async (data, ownerId) => {
     // C. Create AI Direct Message Channel
     const aiDmChannel = await Channel.create(
       {
-        name: `ai-assistant-${ownerId}`,
+        name: `#ai-assistant-${ownerId}`,
         description: "Direct message with UCollyx AI Pair Programmer.",
         type: "public",
         is_private: true,
