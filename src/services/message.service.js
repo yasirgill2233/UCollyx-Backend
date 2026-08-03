@@ -136,7 +136,7 @@ const getUserConversations = async (userId) => {
     where: {
       id: uniqueReceiverIds,
     },
-    attributes: ["id", "full_name", "email", "status","avatar_url","created_at", "updated_at"],
+    attributes: ["id", "full_name", "email", "status","last_login" ,"avatar_url","created_at", "updated_at"],
   });
 };
 
