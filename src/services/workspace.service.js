@@ -180,7 +180,7 @@ const createWorkspace = async (data, ownerId) => {
       defaults: {
         full_name: "UCollyx AI Assistant",
         email: "ai-bot@ucollyx.com",
-        password: "SYSTEM_BOT_ACCOUNT_NO_LOGIN",
+        password: "123abc!@#ABC123abc!@#ABC",
         role: "member",
         status: "active",
         avatar_url: "/uploads/avatars/avatar-ai.png",
