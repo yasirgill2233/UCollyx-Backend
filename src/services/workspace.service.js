@@ -445,7 +445,7 @@ const getWorkspaceMembers = async (workspaceId, currentUserId) => {
     include: [
       {
         model: User,
-        attributes: ['id', 'full_name', 'email', 'status','avatar_url']
+        attributes: ['id', 'full_name', 'email', 'status','avatar_url', 'last_login']
       }
     ]
   });

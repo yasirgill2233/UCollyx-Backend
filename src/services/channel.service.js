@@ -137,7 +137,7 @@ const fetchMembers = async (channelId, workspaceId) => {
         {
           model: User,
           required: true, 
-          attributes: ['id', 'full_name', 'email', 'avatar_url', 'status', 'created_at', 'updated_at'],
+          attributes: ['id', 'full_name', 'email', 'avatar_url', 'status', 'last_login', 'created_at', 'updated_at'],
           include: [
             {
               model: Workspace,

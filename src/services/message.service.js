@@ -8,7 +8,7 @@ const getChannelMessages = async (channelId) => {
       {
         model: User,
         as: "Sender",
-        attributes: ["id", "full_name", "email", "status", "avatar_url", "created_at", "updated_at"],
+        attributes: ["id", "full_name", "email", "status", 'last_login', "avatar_url", "created_at", "updated_at"],
       },
     ],
     order: [["created_at", "ASC"]],
@@ -19,7 +19,7 @@ const getChannelMessages = async (channelId) => {
     include: [
       {
         model: User,
-        attributes: ["id", "full_name", "email", "status","avatar_url","created_at", "updated_at"],
+        attributes: ["id", "full_name", "email", "status","avatar_url","last_login", "created_at", "updated_at"],
       },
     ],
   });
@@ -42,12 +42,12 @@ const getDMMessages = async (userId, otherUserId) => {
       {
         model: User,
         as: "Sender",
-        attributes: ["id", "full_name", "email", "status","avatar_url","created_at", "updated_at"],
+        attributes: ["id", "full_name", "email", "status", 'last_login', "avatar_url", "created_at", "updated_at"],
       },
       {
         model: User,
         as: "Receiver",
-        attributes: ["id", "full_name", "email", "status","avatar_url","created_at", "updated_at"],
+        attributes: ["id", "full_name", "email", "status","avatar_url","last_login", "created_at", "updated_at"],
       },
     ],
     order: [["created_at", "ASC"]],
