@@ -1,7 +1,36 @@
 // services/meetingService.js
 const fs = require("fs");
 const Groq = require("groq-sdk");
-const { Meeting } = require("../models"); // Sequelize/ORM Meeting Model
+const { Meeting, Message } = require("../models"); // Sequelize/ORM Meeting Model
+
+// Jab Jitsi Meeting finalize / close ho jaye:
+const finalizeMeeting1 = async (req, res) => {
+  try {
+    const { meetingId } = req.body;
+    const transcriptText = req.transcript || "Meeting completed"; // Jo Whisper AI se transcript aye
+
+    // Database mein record update karein
+    const updatedMeeting = await Meeting.update(
+      {
+        status: "completed",
+        end_time: new Date(), // End time mark karne ke liye
+        recap_notes: transcriptText // Transcript save karne ke liye
+      },
+      {
+        where: { id: meetingId }
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Meeting closed and status updated to completed.",
+      data: updatedMeeting
+    });
+  } catch (error) {
+    console.error("Error updating meeting status:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -21,13 +50,26 @@ const finalizeMeeting = async (audioFile, meetingId) => {
 
     // 2. Database update: Save transcript to recap_notes
     if (meetingId) {
-      await Meeting.update(
+      await Message.update(
         {
-          recap_notes: transcriptText,
-          status: "completed",
+          transcript: transcriptText,
+          status: "ended",
         },
         { where: { id: meetingId } }
       );
+    }
+
+    if (meetingId) {
+      await Meeting.update(
+      {
+        status: "completed",
+        end_time: new Date(), // End time mark karne ke liye
+        recap_notes: transcriptText // Transcript save karne ke liye
+      },
+      {
+        where: { id: meetingId }
+      }
+    );
     }
 
     // 3. Cleanup temp uploaded audio file
