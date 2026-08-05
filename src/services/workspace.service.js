@@ -145,14 +145,14 @@ const createWorkspace = async (data, ownerId) => {
     // A. Create #announcements and #random channels
     const defaultChannelsData = [
       {
-        name: "#announcements",
+        name: `#announcements-${workspace.slug}`,
         description: "Official announcements and workspace updates.",
         type: "public",
         is_private: false,
         created_by: ownerId,
       },
       {
-        name: "#random",
+        name: `#random-${workspace.slug}`,
         description: "Non-work banter, watercooler conversations, and fun!",
         type: "public",
         is_private: false,
