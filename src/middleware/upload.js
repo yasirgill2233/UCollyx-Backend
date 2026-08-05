@@ -75,7 +75,7 @@ const storage = multer.diskStorage({
       folder = 'uploads/issues/';
     } else if (file.fieldname === 'audio') {
       // Meeting recordings ke liye dedicated folder
-      folder = 'uploads/meetings/';
+      folder = 'uploads/audio/';
     }
 
     if (!fs.existsSync(folder)) {
