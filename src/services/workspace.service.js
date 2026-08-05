@@ -175,40 +175,40 @@ const createWorkspace = async (data, ownerId) => {
       );
     }
 
-    // B. Find or Create System AI Bot User
-    let [aiBotUser] = await User.findOrCreate({
-      where: { email: "ai-bot@ucollyx.com" },
-      defaults: {
-        full_name: "UCollyx AI Assistant",
-        email: "ai-bot@ucollyx.com",
-        password: "123abc!@#ABC123abc!@#ABC",
-        role: "member",
-        status: "active",
-        avatar_url: "/uploads/avatar/ai-avatar.png",
-      },
-      transaction,
-    });
+    // // B. Find or Create System AI Bot User
+    // let [aiBotUser] = await User.findOrCreate({
+    //   where: { email: "ai-bot@ucollyx.com" },
+    //   defaults: {
+    //     full_name: "UCollyx AI Assistant",
+    //     email: "ai-bot@ucollyx.com",
+    //     password: "123abc!@#ABC123abc!@#ABC",
+    //     role: "member",
+    //     status: "active",
+    //     avatar_url: "/uploads/avatar/ai-avatar.png",
+    //   },
+    //   transaction,
+    // });
 
-    // C. Create AI Direct Message Channel
-    const aiDmChannel = await Channel.create(
-      {
-        name: `#ai-assistant-${ownerId}`,
-        description: "Direct message with UCollyx AI Pair Programmer.",
-        type: "public",
-        is_private: false,
-        created_by: ownerId,
-      },
-      { transaction }
-    );
+    // // C. Create AI Direct Message Channel
+    // const aiDmChannel = await Channel.create(
+    //   {
+    //     name: `#ai-assistant-${ownerId}`,
+    //     description: "Direct message with UCollyx AI Pair Programmer.",
+    //     type: "public",
+    //     is_private: false,
+    //     created_by: ownerId,
+    //   },
+    //   { transaction }
+    // );
 
-    // Add Owner and AI Bot to this DM Channel
-    await ChannelMember.bulkCreate(
-      [
-        { channel_id: aiDmChannel.id, user_id: ownerId, role_in_channel: "admin", is_muted: false },
-        { channel_id: aiDmChannel.id, user_id: aiBotUser.id, role_in_channel: "member", is_muted: false },
-      ],
-      { transaction }
-    );
+    // // Add Owner and AI Bot to this DM Channel
+    // await ChannelMember.bulkCreate(
+    //   [
+    //     { channel_id: aiDmChannel.id, user_id: ownerId, role_in_channel: "admin", is_muted: false },
+    //     { channel_id: aiDmChannel.id, user_id: aiBotUser.id, role_in_channel: "member", is_muted: false },
+    //   ],
+    //   { transaction }
+    // );
 
     // D. Welcome Message from AI inside the DM
     if (Message) {
@@ -217,7 +217,7 @@ const createWorkspace = async (data, ownerId) => {
           channel_id: aiDmChannel.id,
           sender_id: aiBotUser.id,
           receiver_id: ownerId,
-          content: `👋 Hi! Welcome to **${workspace.name}**! I am your AI assistant powered by Groq Llama 3. Ask me anything about your code, workspace tasks, or debugging!`,
+          content: `👋 Hi! Welcome to ${workspace.name}! I am your AI assistant powered by Groq Llama 3. Ask me anything about your code, workspace tasks, or debugging!`,
         },
         { transaction }
       );
