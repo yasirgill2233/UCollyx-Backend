@@ -14,17 +14,17 @@ const finalizeMeeting1 = async (req, res) => {
       {
         status: "completed",
         end_time: new Date(), // End time mark karne ke liye
-        recap_notes: transcriptText // Transcript save karne ke liye
+        recap_notes: transcriptText, // Transcript save karne ke liye
       },
       {
-        where: { id: meetingId }
-      }
+        where: { id: meetingId },
+      },
     );
 
     return res.status(200).json({
       success: true,
       message: "Meeting closed and status updated to completed.",
-      data: updatedMeeting
+      data: updatedMeeting,
     });
   } catch (error) {
     console.error("Error updating meeting status:", error);
@@ -46,7 +46,31 @@ const finalizeMeeting = async (audioFile, meetingId) => {
       language: "en",
     });
 
-    const transcriptText = transcription.text || "No speech detected in recorded audio.";
+    const transcriptText =
+      transcription.text || "No speech detected in recorded audio.";
+
+    const completion = await groq.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: `You are an executive AI assistant. Take the meeting transcript provided by the user and summarize it into clear, highly professional bullet points. 
+          
+Structure your response as follows:
+📌 **Key Discussion Points** (Bullet points)
+✅ **Action Items & Decisions Made** (Bullet points)
+📝 **Brief Executive Summary** (2-3 sentences)`,
+        },
+        {
+          role: "user",
+          content: `Here is the raw meeting transcript:\n\n"${transcriptText}"`,
+        },
+      ],
+      model: "llama-3.3-70b-versatile", // Fast and highly accurate model
+      temperature: 0.3,
+    });
+
+    const summarizedNotes =
+      completion.choices[0]?.message?.content || rawTranscript;
 
     // 2. Database update: Save transcript to recap_notes
     if (meetingId) {
@@ -55,21 +79,21 @@ const finalizeMeeting = async (audioFile, meetingId) => {
           transcript: transcriptText,
           status: "ended",
         },
-        { where: { id: meetingId } }
+        { where: { id: meetingId } },
       );
     }
 
     if (meetingId) {
       await Meeting.update(
-      {
-        status: "completed",
-        end_time: new Date(), // End time mark karne ke liye
-        recap_notes: transcriptText // Transcript save karne ke liye
-      },
-      {
-        where: { id: meetingId }
-      }
-    );
+        {
+          status: "completed",
+          end_time: new Date(), // End time mark karne ke liye
+          recap_notes: transcriptText, // Transcript save karne ke liye
+        },
+        {
+          where: { id: meetingId },
+        },
+      );
     }
 
     // 3. Cleanup temp uploaded audio file
