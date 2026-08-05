@@ -181,9 +181,9 @@ const createWorkspace = async (data, ownerId) => {
         full_name: "UCollyx AI Assistant",
         email: "ai-bot@ucollyx.com",
         password: "123abc!@#ABC123abc!@#ABC",
-        role: "system",
+        role: "member",
         status: "active",
-        avatar_url: "/assets/ai-avatar.png",
+        avatar_url: "/uploads/avatar/ai-avatar.png",
       },
       transaction,
     });
