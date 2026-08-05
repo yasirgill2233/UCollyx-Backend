@@ -9,6 +9,7 @@ const {
   ProjectMember,
   Channel,
   ChannelMember,
+  Message,
 } = require("../models");
 
 const { Op } = require("sequelize");
