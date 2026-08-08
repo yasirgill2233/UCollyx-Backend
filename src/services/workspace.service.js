@@ -509,6 +509,18 @@ const processJoinRequest = async (
 
 const changeMemberRole = async (workspaceId, userId, newRole) => {
   try {
+
+    if(newRole === "del"){
+      const deletedRows = await WorkspaceMember.destroy({
+        where: { user_id: userId, workspace_id: workspaceId },
+      });
+
+      if (deletedRows === 0) {
+        throw new Error("Member not found or already removed");
+      }
+
+      return { userId, role: "removed" };
+    }
     const [updatedRows] = await WorkspaceMember.update(
       { role: newRole },
       { where: { user_id: userId, workspace_id: workspaceId } },
