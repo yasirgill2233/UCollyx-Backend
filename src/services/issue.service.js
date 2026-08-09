@@ -109,10 +109,17 @@ const issueService = {
     }
   },
 
-  getProjectIssues: async (projectId) => {
+  getProjectIssues: async (projectId, workspaceId) => {
     return await Issue.findAll({
       where: { project_id: projectId },
       include: [
+        {
+          model: Project,
+          as: "project",
+          where: {
+            workspace_id: workspaceId,
+          },
+        },
         {
           model: User,
           as: "reporter",
@@ -225,6 +232,13 @@ const issueService = {
         },
       },
       include: [
+        {
+          model: Project,
+          as: "project",
+          where: {
+            workspace_id: workspaceId,
+          },
+        },
         {
           model: User,
           as: "reporter",

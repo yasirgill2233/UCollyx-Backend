@@ -375,7 +375,7 @@ const issueController = {
   getByProject: async (req, res) => {
     try {
       const { projectId } = req.params;
-      const workspaceId = req.user.workspace_id;
+      const workspaceId = req?.user?.workspace_id;
       const issues = await issueService.getProjectIssues(projectId, workspaceId);
 
       console.log("################################@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@::::::::::::::::",issues)
@@ -402,7 +402,7 @@ const issueController = {
   getDetails: async (req, res) => {
     try {
       const id = req.user.id;
-      const workspaceId = req.user.workspace_id;
+      const workspaceId = req?.user?.workspace_id;
       const issue = await issueService.getIssueDetails(id, workspaceId);
       if (!issue)
         return res

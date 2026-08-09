@@ -521,7 +521,7 @@ const taskService = require('../services/task.service');
 const getBoardData = async (req, res) => {
     try {
         const { id } = req.params;
-        const boardData = await taskService.fetchBoardData(id);
+        const boardData = await taskService.fetchBoardData(id, req?.user?.workspace_id);
         res.json(boardData);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -532,7 +532,7 @@ const getAssignedBoardData = async (req, res) => {
     try {
         const { id } = req.params;
         const user_id = req.user.id;
-        const boardData = await taskService.fetchAssignedBoardData(id, user_id);
+        const boardData = await taskService.fetchAssignedBoardData(id, user_id, req?.user?.workspace_id);
         res.json(boardData);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -542,7 +542,7 @@ const getAssignedBoardData = async (req, res) => {
 const getTodayTaskData = async (req, res) => {
     try {
         const user_id = req.user.id;
-        const boardData = await taskService.fetchTodayTaskData(user_id);
+        const boardData = await taskService.fetchTodayTaskData(user_id, req?.user?.workspace_id);
         res.json({ success: true, data: boardData });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -763,7 +763,7 @@ const getTaskSubtasks = async (req, res) => {
 const getTaskAssignees = async (req, res) => {
     try {
         const { taskId } = req.params;
-        const assignees = await taskService.fetchAssigneesByTaskId(taskId);
+        const assignees = await taskService.fetchAssigneesByTaskId(taskId, req?.user?.workspace_id);
         res.status(200).json(assignees);
     } catch (error) {
         console.error("Error in getTaskAssignees Controller:", error);
@@ -798,7 +798,7 @@ const toggleTaskAssignee = async (req, res) => {
 const getProjectEpics = async (req, res) => {
     try {
         const { projectId } = req.params;
-        const epics = await taskService.fetchEpicsByProjectId(projectId);
+        const epics = await taskService.fetchEpicsByProjectId(projectId, req?.user?.workspace_id);
         res.status(200).json(epics);
     } catch (error) {
         console.error("Error in getProjectEpics:", error);

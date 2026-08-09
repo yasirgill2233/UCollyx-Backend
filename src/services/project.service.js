@@ -245,8 +245,8 @@ const updateProjectTeam = async (projectId, members) => {
   }
 };
 
-const fetchManagerPortfolio = async (managerId) => {
-  console.log("### Fetching Current Sprint Isolated Metrics for Manager:", managerId);
+const fetchManagerPortfolio = async (managerId, workspaceId) => {
+  // console.log("### Fetching Current Sprint Isolated Metrics for Manager:", managerId);
 
   const portfolioData = await Project.findAll({
     attributes: [
@@ -345,7 +345,7 @@ const fetchManagerPortfolio = async (managerId) => {
         )
       }
     ],
-    where: { manager_id: managerId },
+    where: { manager_id: managerId, workspace_id: workspaceId },
     group: ["Project.id"],
     order: [["createdAt", "DESC"]]
   });

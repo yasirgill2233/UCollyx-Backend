@@ -5,15 +5,21 @@ const {
   TaskComment,
   Subtask,
   TaskAssignee,
+  Project,
 } = require("../models");
 
 const { Op } = require("sequelize");
 
-
-const fetchBoardData = async (projectId) => {
+const fetchBoardData = async (projectId, workspaceId) => {
   const tasksFromDb = await Task.findAll({
     where: { project_id: projectId },
     include: [
+      {
+        model: Project,
+        where: {
+          workspace_id: workspaceId,
+        },
+      },
       {
         model: User,
         as: "assignees",
@@ -48,11 +54,16 @@ const fetchBoardData = async (projectId) => {
   return { tasks, columns };
 };
 
-
-const fetchAssignedBoardData = async (projectId, userId) => {
+const fetchAssignedBoardData = async (projectId, userId, workspaceId) => {
   const tasksFromDb = await Task.findAll({
     where: { project_id: projectId },
     include: [
+      {
+        model: Project,
+        where: {
+          workspace_id: workspaceId,
+        },
+      },
       {
         model: User,
         as: "assignees",
@@ -65,7 +76,7 @@ const fetchAssignedBoardData = async (projectId, userId) => {
         as: "ParentTask",
         attributes: ["id", "title"],
       },
-            {
+      {
         model: Subtask,
         as: "subtasks",
       },
@@ -92,7 +103,7 @@ const fetchAssignedBoardData = async (projectId, userId) => {
   return { tasks, columns };
 };
 
-const fetchTodayTaskData = async (userId) => {
+const fetchTodayTaskData = async (userId, workspaceId) => {
   const startOfDay = new Date("2026-05-15");
   startOfDay.setHours(0, 0, 0, 0);
 
@@ -102,10 +113,16 @@ const fetchTodayTaskData = async (userId) => {
   return await Task.findAll({
     where: {
       due_time: {
-        [Op.between]: [startOfDay, endOfDay]
-      }
+        [Op.between]: [startOfDay, endOfDay],
+      },
     },
     include: [
+      {
+        model: Project,
+        where: {
+          workspace_id: workspaceId,
+        },
+      },
       {
         model: User,
         as: "assignees",
@@ -127,13 +144,9 @@ const fetchTodayTaskData = async (userId) => {
   });
 };
 
-
 // const updateTaskState = async (taskId, status, position) => {
 //   return await Task.update({ status, position }, { where: { id: taskId } });
 // };
-
-
-
 
 // 🚀 UPDATED: Safe handling for sorting positions inside matching status columns
 const updateTaskState = async (taskId, status, position, projectId) => {
@@ -148,40 +161,40 @@ const updateTaskState = async (taskId, status, position, projectId) => {
   if (oldStatus === status) {
     if (oldPosition < position) {
       // Moving down
-      await Task.decrement('position', {
+      await Task.decrement("position", {
         where: {
           project_id: task.project_id,
           status: status,
-          position: { [Op.between]: [oldPosition + 1, position] }
-        }
+          position: { [Op.between]: [oldPosition + 1, position] },
+        },
       });
     } else if (oldPosition > position) {
       // Moving up
-      await Task.increment('position', {
+      await Task.increment("position", {
         where: {
           project_id: task.project_id,
           status: status,
-          position: { [Op.between]: [position, oldPosition - 1] }
-        }
+          position: { [Op.between]: [position, oldPosition - 1] },
+        },
       });
     }
   } else {
     // Status badal gaya: Purane column ke bache hue cards ko shift-up karein
-    await Task.decrement('position', {
+    await Task.decrement("position", {
       where: {
         project_id: task.project_id,
         status: oldStatus,
-        position: { [Op.gt]: oldPosition }
-      }
+        position: { [Op.gt]: oldPosition },
+      },
     });
 
     // Naye column ke cards ko shift-down karein space banane ke liye
-    await Task.increment('position', {
+    await Task.increment("position", {
       where: {
         project_id: task.project_id,
         status: status,
-        position: { [Op.gte]: position }
-      }
+        position: { [Op.gte]: position },
+      },
     });
   }
 
@@ -192,7 +205,6 @@ const updateTaskState = async (taskId, status, position, projectId) => {
 
   return task;
 };
-
 
 const createNewTask = async (taskData) => {
   const taskCount = await Task.count({
@@ -210,7 +222,6 @@ const createNewTask = async (taskData) => {
 };
 
 const updateTaskInDB = async (taskId, updatedData) => {
-  
   const task = await Task.findByPk(taskId);
   if (!task) return null;
 
@@ -235,7 +246,7 @@ const fetchCommentsByTaskId = async (taskId) => {
   return await TaskComment.findAll({
     where: { task_id: taskId },
     include: [{ model: User, attributes: ["id", "full_name", "avatar_url"] }],
-    order: [["created_at", "ASC"]], 
+    order: [["created_at", "ASC"]],
   });
 };
 
@@ -282,9 +293,15 @@ const fetchSubtasksByTaskId = async (taskId) => {
   });
 };
 
-const fetchAssigneesByTaskId = async (taskId) => {
+const fetchAssigneesByTaskId = async (taskId, workspaceId) => {
   const taskData = await Task.findByPk(taskId, {
     include: [
+      {
+        model: Project,
+        where: {
+          workspace_id: workspaceId,
+        },
+      },
       {
         model: User,
         as: "assignees",
@@ -314,10 +331,18 @@ const toggleAssigneeMapping = async (taskId, userId) => {
   }
 };
 
-const fetchEpicsByProjectId = async (projectId) => {
+const fetchEpicsByProjectId = async (projectId, workspaceId) => {
   console.log(projectId);
   return await Task.findAll({
     where: { project_id: projectId, type: "epic" },
+    include: [
+      {
+        model: Project,
+        where: {
+          workspace_id: workspaceId,
+        },
+      },
+    ],
     order: [["title", "ASC"]],
   });
 };
@@ -348,5 +373,5 @@ module.exports = {
   fetchEpicsByProjectId,
   assignEpicToTask,
   fetchAssignedBoardData,
-  fetchTodayTaskData
+  fetchTodayTaskData,
 };

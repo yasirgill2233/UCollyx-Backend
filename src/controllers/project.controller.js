@@ -171,9 +171,9 @@ const handleUpdateTeam = async (req, res) => {
 const getManagerPortfolio = async (req, res, next) => {
   try {
     const managerId = req.user.id; 
-    const portfolio = await projectService.fetchManagerPortfolio(managerId);
+    const portfolio = await projectService.fetchManagerPortfolio(managerId, req?.user?.workspace_id);
 
-    console.log("HHHHHHHHHHHHHHHHHHH:::::::",portfolio, managerId)
+    // console.log("HHHHHHHHHHHHHHHHHHH:::::::",portfolio, managerId)
     return res.status(200).json({
       success: true,
       message: "Manager portfolio matrix synchronized successfully.",

@@ -52,7 +52,7 @@ const createMeeting = async (req, res) => {
 
 const getAllMeetings = async (req, res) => {
   try {
-    const meetings = await meetingService.fetchAllMeetings(req.user.id, req.user.workspace_id);
+    const meetings = await meetingService.fetchAllMeetings(req.user.id, req?.user?.workspace_id);
     console.log("Hey There:========================",meetings)
     res.json(meetings);
   } catch (error) {

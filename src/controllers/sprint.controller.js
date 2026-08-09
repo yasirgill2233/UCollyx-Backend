@@ -44,6 +44,14 @@ exports.getProjectSprints = async (req, res) => {
 
     const sprints = await Sprint.findAll({
       where: { project_id: Number(projectId) },
+      include: [
+        {
+          model: Project,
+          where: {
+            workspace_id: req?.user?.workspace_id,
+          },
+        },
+      ],
       order: [["createdAt", "DESC"]]
     });
 
