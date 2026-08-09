@@ -11,7 +11,7 @@ const getProjectDeployments = async (req, res) => {
       });
     }
 
-    const deployments = await deploymentService.getDeploymentsByProjectId(projectId);
+    const deployments = await deploymentService.getDeploymentsByProjectId(projectId, req?.user?.workspace_id);
     
     return res.status(200).json(deployments);
   } catch (error) {

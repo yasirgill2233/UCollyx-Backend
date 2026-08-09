@@ -42,4 +42,11 @@ const Deployment = sequelize.define("Deployment", {
   },
 );
 
+Deployment.associate = (models) => {
+  Deployment.belongsTo(models.Project, {
+    foreignKey: "project_id",
+    targetKey: "id",
+  });
+};
+
 module.exports = Deployment;

@@ -86,6 +86,11 @@ Project.associate = (models) => {
     as: "issues",
   });
 
+  Project.hasMany(models.Deployment, {
+    foreignKey: "project_id",
+    sourceKey: "id",
+  });
+
   Project.hasMany(models.Task, {
   foreignKey: 'project_id',
 });
