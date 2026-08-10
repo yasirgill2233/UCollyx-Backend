@@ -159,7 +159,7 @@ const createWorkspace = async (data, ownerId) => {
         is_private: false,
         created_by: ownerId,
       },
-    ];
+    ]; 
 
     for (const chanData of defaultChannelsData) {
       const channel = await Channel.create(chanData, { transaction });
