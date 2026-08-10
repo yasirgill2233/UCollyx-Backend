@@ -211,17 +211,17 @@ const createWorkspace = async (data, ownerId) => {
     // );
 
     // D. Welcome Message from AI inside the DM
-    if (Message) {
-      await Message.create(
-        {
-          channel_id: aiDmChannel.id,
-          sender_id: aiBotUser.id,
-          receiver_id: ownerId,
-          content: `👋 Hi! Welcome to ${workspace.name}! I am your AI assistant powered by Groq Llama 3. Ask me anything about your code, workspace tasks, or debugging!`,
-        },
-        { transaction }
-      );
-    }
+    // if (Message) {
+    //   await Message.create(
+    //     {
+    //       channel_id: aiDmChannel.id,
+    //       sender_id: aiBotUser.id,
+    //       receiver_id: ownerId,
+    //       content: `👋 Hi! Welcome to ${workspace.name}! I am your AI assistant powered by Groq Llama 3. Ask me anything about your code, workspace tasks, or debugging!`,
+    //     },
+    //     { transaction }
+    //   );
+    // }
 
     await transaction.commit();
     return workspace;
