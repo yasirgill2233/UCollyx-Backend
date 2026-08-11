@@ -14,7 +14,6 @@ const createMeeting = async (meetingData, creatorId) => {
 
   console.log(participants);
 
-  // Jitsi unique room name generation
   const meeting_url = `https://meet.jit.si/${title.replace(/\s+/g, "-")}-${Date.now()}`;
 
   const newMeeting = await Meeting.create({
@@ -46,7 +45,7 @@ const createMeeting = async (meetingData, creatorId) => {
   console.log("Saving Participants:", participantData);
   await MeetingMember.bulkCreate(participantData);
 } catch (error) {
-  console.error("DETAILED DB ERROR:", error.name, error.parent); // Is se exact SQL error milega
+  console.error("DETAILED DB ERROR:", error.name, error.parent);
   return res.status(500).json({ 
     message: "Failed to add participants", 
     details: error.parent?.sqlMessage || error.message 

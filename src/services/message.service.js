@@ -140,7 +140,6 @@ const getUserConversations = async (userId) => {
   });
 };
 
-// Call start karne ki logic
 const createCallMessage = async (data) => {
     return await Message.create({
         sender_id: data.sender_id,
@@ -153,7 +152,6 @@ const createCallMessage = async (data) => {
     });
 };
 
-// Call end karke duration save karne ki logic
 const finalizeCall = async (messageId) => {
     const message = await Message.findByPk(messageId);
     
@@ -163,7 +161,6 @@ const finalizeCall = async (messageId) => {
 
     const endTime = new Date();
     const startTime = new Date(message.sent_at);
-    // Calculation: (End - Start) / 1000 to get seconds
     const durationInSeconds = Math.floor((endTime - startTime) / 1000);
 
     return await message.update({
@@ -173,7 +170,6 @@ const finalizeCall = async (messageId) => {
     });
 };
 
-// Schedule logic
 const scheduleCallMessage = async (data) => {
   console.log(data)
     return await Message.create({
@@ -183,11 +179,10 @@ const scheduleCallMessage = async (data) => {
         type: 'call',
         content: data.content,
         call_status: 'scheduled',
-        scheduled_at: data.scheduled_at // Ensure frontend sends ISO format
+        scheduled_at: data.scheduled_at
     });
 };
 
-// Function to update meeting status (e.g., from scheduled to active)
 const updateMeetingStatus = async (messageId, status) => {
     const message = await Message.findByPk(messageId);
     
@@ -197,8 +192,6 @@ const updateMeetingStatus = async (messageId, status) => {
 
     return await message.update({ 
         call_status: status,
-        // Agar status active ho raha hai, to sent_at ko current time set kr dain
-        // taake duration sahi calculate ho sakay end pr
         ...(status === 'active' ? { sent_at: new Date() } : {})
     });
 };

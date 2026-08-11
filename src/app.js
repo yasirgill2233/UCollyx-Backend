@@ -34,7 +34,7 @@ app.use(
     crossOriginResourcePolicy: {
       policy: "cross-origin",
     },
-    frameguard: false, // <-- Ye line add karo
+    frameguard: false,
   }),
 );
 

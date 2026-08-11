@@ -138,11 +138,6 @@ const createWorkspace = async (data, ownerId) => {
       { transaction },
     );
 
-
-    // ========================================================
-    // AUTO-CREATE DEFAULT CHANNELS & AI DM
-    // ========================================================
-
     // A. Create #announcements and #random channels
     const defaultChannelsData = [
       {
@@ -537,7 +532,6 @@ const changeMemberRole = async (workspaceId, userId, newRole) => {
 };
 
 const getWorkspaceMembers = async (workspaceId, currentUserId) => {
-  // 1. Workspace ke sare members ki IDs fetch karein
   const members = await WorkspaceMember.findAll({
     where: {
       workspace_id: workspaceId
@@ -550,7 +544,6 @@ const getWorkspaceMembers = async (workspaceId, currentUserId) => {
     ]
   });
 
-  // Extract only user data from the members array
   return members
 };
 

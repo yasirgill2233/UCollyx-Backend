@@ -14,7 +14,6 @@ module.exports = (io, socket) => {
     if (!data || !data.project_id) return;
 
     const roomName = `project_room:${data.project_id}`;
-    // Bhejne wale ke ilawa baqi sab developers ko update notify karein
     socket.to(roomName).emit("board:task_moved_received", data);
     console.log(`🔄 Task ${data.task_id} shifted position in Project Room: ${roomName}`);
   });

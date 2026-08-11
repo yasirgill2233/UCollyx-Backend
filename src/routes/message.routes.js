@@ -11,7 +11,6 @@ const upload = require('../middleware/upload');
 
 router.get('/channel/:channelId', protect, messageController.getChannelMessages);
 router.get('/dm/:receiverId', protect, messageController.getDMMessages);
-// router.post('/send', protect, messageController.sendMessage);
 router.post('/send', protect, upload.array('attachments', 5), messageController.sendMessage);
 router.get('/conversations', protect, messageController.getConversations);
 

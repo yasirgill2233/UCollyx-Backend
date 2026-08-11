@@ -246,7 +246,6 @@ const updateProjectTeam = async (projectId, members) => {
 };
 
 const fetchManagerPortfolio = async (managerId, workspaceId) => {
-  // console.log("### Fetching Current Sprint Isolated Metrics for Manager:", managerId);
 
   const portfolioData = await Project.findAll({
     attributes: [
@@ -254,8 +253,6 @@ const fetchManagerPortfolio = async (managerId, workspaceId) => {
       "name",
       "status",
       "current_sprint",
-
-      // 🔄 1. PROGRESS ENGINE (Calculates sprint progress instantly)
       [
         sequelize.literal(`
           COALESCE(
@@ -267,7 +264,6 @@ const fetchManagerPortfolio = async (managerId, workspaceId) => {
         "progress"
       ],
 
-      // 📊 2. CURRENT SPRINT TASKS COUNT (e.g., "3/7")
       [
         sequelize.literal(`
           CONCAT(
@@ -279,7 +275,6 @@ const fetchManagerPortfolio = async (managerId, workspaceId) => {
         "tasksCount"
       ],
 
-      // 🚨 3. RED CARDS (High Priority Issues inside current scope)
       [
         sequelize.literal(`
           COUNT(CASE WHEN \`Tasks\`.\`priority\` = 'High' AND \`Tasks\`.\`status\` != 'done' THEN 1 END)
@@ -287,13 +282,11 @@ const fetchManagerPortfolio = async (managerId, workspaceId) => {
         "redCards"
       ],
 
-      // 🏎️ 4. MICRO COUNTERS FOR LIVE BOARD
       [sequelize.literal(`COUNT(CASE WHEN \`Tasks\`.\`status\` = 'todo' THEN 1 END)`), "todoCount"],
       [sequelize.literal(`COUNT(CASE WHEN \`Tasks\`.\`status\` = 'inprogress' THEN 1 END)`), "inprogressCount"],
       [sequelize.literal(`COUNT(CASE WHEN \`Tasks\`.\`status\` = 'blocked' THEN 1 END)`), "blockedCount"],
       [sequelize.literal(`COUNT(CASE WHEN \`Tasks\`.\`status\` = 'done' THEN 1 END)`), "doneCount"],
 
-      // 🗓️ 5. CURRENT SPRINT METADATA EXTRACTION (Sub-queries keep aggregate processing clean)
       [
         sequelize.literal(`(
           SELECT \`name\` FROM \`sprints\` 
@@ -336,8 +329,6 @@ const fetchManagerPortfolio = async (managerId, workspaceId) => {
         model: Task,
         attributes: [],
         required: false,
-        // ⚡ FIXED BINDING CRITERIA: Bypassing Op.col syntax mismatch glitch 
-        // Yeh query absolute level par link assign karegi direct injection se
         where: sequelize.where(
           sequelize.col("Tasks.sprint_id"),
           "=",

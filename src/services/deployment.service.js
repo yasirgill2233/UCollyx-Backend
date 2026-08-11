@@ -15,7 +15,7 @@ const getDeploymentsByProjectId = async (projectId, workspaceId) => {
           },
         },
       ],
-      order: [["deployed_at", "DESC"]], // Naye deployments sabse upar
+      order: [["deployed_at", "DESC"]],
     });
   } catch (error) {
     throw new Error(`Service Error: ${error.message}`);

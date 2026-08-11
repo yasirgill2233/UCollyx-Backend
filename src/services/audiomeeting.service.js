@@ -1,20 +1,17 @@
-// services/meetingService.js
 const fs = require("fs");
 const Groq = require("groq-sdk");
-const { Meeting, Message } = require("../models"); // Sequelize/ORM Meeting Model
+const { Meeting, Message } = require("../models");
 
-// Jab Jitsi Meeting finalize / close ho jaye:
 const finalizeMeeting1 = async (req, res) => {
   try {
     const { meetingId } = req.body;
-    const transcriptText = req.transcript || "Meeting completed"; // Jo Whisper AI se transcript aye
+    const transcriptText = req.transcript || "Meeting completed";
 
-    // Database mein record update karein
     const updatedMeeting = await Meeting.update(
       {
         status: "completed",
-        end_time: new Date(), // End time mark karne ke liye
-        recap_notes: transcriptText, // Transcript save karne ke liye
+        end_time: new Date(), 
+        recap_notes: transcriptText,
       },
       {
         where: { id: meetingId },
@@ -38,7 +35,6 @@ const finalizeMeeting = async (audioFile, meetingId) => {
   try {
     console.log(`🎙️ Processing transcript for Meeting ID: ${meetingId}...`);
 
-    // 1. Call Groq Speech-to-Text Whisper Model
     const transcription = await groq.audio.transcriptions.create({
       file: fs.createReadStream(audioFile.path),
       model: "whisper-large-v3",
@@ -65,14 +61,13 @@ Structure your response as follows:
           content: `Here is the raw meeting transcript:\n\n"${transcriptText}"`,
         },
       ],
-      model: "llama-3.3-70b-versatile", // Fast and highly accurate model
+      model: "llama-3.3-70b-versatile",
       temperature: 0.3,
     });
 
     const summarizedNotes =
       completion.choices[0]?.message?.content || rawTranscript;
 
-    // 2. Database update: Save transcript to recap_notes
     if (meetingId) {
       await Message.update(
         {
@@ -87,8 +82,8 @@ Structure your response as follows:
       await Meeting.update(
         {
           status: "completed",
-          end_time: new Date(), // End time mark karne ke liye
-          recap_notes: transcriptText, // Transcript save karne ke liye
+          end_time: new Date(),
+          recap_notes: transcriptText,
         },
         {
           where: { id: meetingId },
@@ -96,7 +91,6 @@ Structure your response as follows:
       );
     }
 
-    // 3. Cleanup temp uploaded audio file
     if (fs.existsSync(audioFile.path)) {
       fs.unlink(audioFile.path, (err) => {
         if (err) console.error("Error deleting temp audio file:", err);
@@ -105,7 +99,6 @@ Structure your response as follows:
 
     return { transcript: transcriptText };
   } catch (error) {
-    // Exception cleanup
     if (audioFile && fs.existsSync(audioFile.path)) {
       fs.unlinkSync(audioFile.path);
     }

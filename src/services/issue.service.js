@@ -2,53 +2,6 @@ const { Op } = require("sequelize");
 const { Issue, IssueAttachment, User, IssueComment, Project } = require("../models");
 
 const issueService = {
-  //   createIssue: async (issueData) => {
-  //     try {
-
-  //       const { metadata, steps_to_repro } = issueData;
-
-  //       let formattedSteps = "";
-  //       if (Array.isArray(steps_to_repro)) {
-  //         formattedSteps = steps_to_repro.filter(step => step && step.trim() !== "").join("\n");
-  //       } else {
-  //         formattedSteps = steps_to_repro || "";
-  //       }
-
-  //       let finalDescription = issueData.description || "Logged via QA Portal";
-  //       if (metadata) {
-  //         try {
-  //           const parsedMeta = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
-  //           if (parsedMeta && parsedMeta.is_red_card) {
-  //             finalDescription = `[RED CARD ESCALATION] Reason: ${parsedMeta.red_card_reason}\n\n${finalDescription}`;
-  //           }
-  //         } catch (e) {
-  //           console.log("Metadata parsing fallback logs checked");
-  //         }
-  //       }
-
-  //       const cleanedData = {
-  //         project_id: issueData.project_id ? parseInt(issueData.project_id) : null,
-  //         raised_by: issueData.raised_by ? parseInt(issueData.raised_by) : 1,
-  //         assigned_to: issueData.assigned_to ? parseInt(issueData.assigned_to) : 1,
-  //         title: issueData.title || "Untitled Bug Report",
-  //         description: finalDescription,
-  //         severity: issueData.severity || "Medium",
-  //         status: "New",
-  //         retest_status: "Pending",
-  //         steps_to_repro: formattedSteps,
-  //         expected_result: issueData.expected_result || "",
-  //         actual_result: issueData.actual_result || "",
-  //         environment: issueData.environment || "Production"
-  //       };
-
-  //       return await Issue.create(cleanedData);
-
-  //     } catch (error) {
-  //       console.error(error);
-  //       throw error;
-  //     }
-  //   },
-
   createIssue: async (issueData) => {
     try {
       const { metadata, steps_to_repro, uploaded_files } = issueData;
@@ -135,54 +88,6 @@ const issueService = {
       order: [["created_at", "DESC"]],
     });
   },
-
-
-//   getProjectIssues: async (projectId, workspaceId) => {
-//   try {
-//     console.log(`📡 Fetching issues for Project: ${projectId} inside Workspace: ${workspaceId}`);
-
-//     return await Issue.findAll({
-//       where: { 
-//         project_id: projectId // Target project ke issues uthao 
-//       },
-//       distinct: true, // Duplicates row validation handle karne ke liye
-//       include: [
-//         {
-//           model: User,
-//           as: "reporter", // 
-//           attributes: ["id", "full_name", "avatar_url"],
-//         },
-//         {
-//           model: User,
-//           as: "assignee", // 
-//           attributes: ["id", "full_name", "avatar_url"],
-//         },
-//         { 
-//           model: IssueAttachment, 
-//           as: "attachments" // [cite: 61]
-//         },
-//         {
-//           // 🎯 DIRECT WORKSPACE BOUNDARY ENFORCEMENT
-//           // Project table ko include karke strict workspace check lagaya
-//           model: Project,
-//           as: "issues",
-//           required: true, // Strict Inner Join taake sirf isi workspace ka data mile
-//           where: { 
-//             workspace_id: workspaceId // 🔥 Secure workspace isolation check 
-//           },
-//           attributes: [] // Humen response payload me project table ka data extra nahi chahiye
-//         }
-//       ],
-//       order: [["created_at", "DESC"]], // 
-//     });
-
-//   } catch (error) {
-//     console.error("❌ Error inside getProjectIssues service:", error.message);
-//     throw error;
-//   }
-// },
-
-  // 3. Single Issue ki details, comments aur attachments ke sath nikalna
   
   getIssues: async (workspaceId) => {
     return await Issue.findAll({
@@ -212,11 +117,11 @@ const issueService = {
         {
           model: Project,
           as: "project",
-          required: true, // Strict Inner Join taake sirf isi workspace ka data mile
+          required: true,
           where: {
-            workspace_id: workspaceId, // 🔥 Secure workspace isolation check
+            workspace_id: workspaceId,
           },
-          attributes: [], // Humen response payload me project table ka data extra nahi chahiye
+          attributes: [],
         },
       ],
       order: [[{ model: IssueComment, as: "comments" }, "created_at", "ASC"]],
@@ -264,11 +169,11 @@ const issueService = {
         {
           model: Project,
           as: "project",
-          required: true, // Strict Inner Join taake sirf isi workspace ka data mile
+          required: true,
           where: {
-            workspace_id: workspaceId, // 🔥 Secure workspace isolation check
+            workspace_id: workspaceId,
           },
-          attributes: [], // Humen response payload me project table ka data extra nahi chahiye
+          attributes: [],
         },
       ],
       order: [[{ model: IssueComment, as: "comments" }, "created_at", "ASC"]],
@@ -294,7 +199,6 @@ const issueService = {
     return issue;
   },
 
-  // 5. Issue par comment add karna
   addComment: async (issueId, userId, commentText) => {
     const comment = await IssueComment.create({
       issue_id: issueId,
@@ -302,7 +206,6 @@ const issueService = {
       comment_text: commentText,
     });
 
-    // Naya comment fetch karke return karein taake User profile details sath milein
     return await IssueComment.findByPk(comment.id, {
       include: [
         {
@@ -314,7 +217,6 @@ const issueService = {
     });
   },
 
-  // 6. Issue Attachment file save karna
   addAttachment: async (issueId, fileName, fileUrl) => {
     return await IssueAttachment.create({
       issue_id: issueId,

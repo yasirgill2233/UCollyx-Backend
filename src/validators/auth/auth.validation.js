@@ -6,7 +6,7 @@ const registerSchema = Joi.object({
     .max(50)
     .trim()
     .required()
-    .pattern(/^[a-zA-Z\s]+$/) // Sirf alphabets aur spaces allowed hain
+    .pattern(/^[a-zA-Z\s]+$/)
     .messages({
       'string.empty': 'Full name cannot be empty',
       'string.min': 'Full name must be at least 3 characters long',
@@ -16,9 +16,9 @@ const registerSchema = Joi.object({
     }),
 
   email: Joi.string()
-    .email({ minDomainSegments: 2 }) // Ensure proper tld like .com, .org
+    .email({ minDomainSegments: 2 })
     .trim()
-    .lowercase() // Automatic email ko lowercase kar dega
+    .lowercase()
     .required()
     .messages({
       'string.empty': 'Email cannot be empty',
@@ -30,7 +30,7 @@ const registerSchema = Joi.object({
     .min(8)
     .max(32)
     .required()
-    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/) // Strong password regex
+    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
     .messages({
       'string.empty': 'Password cannot be empty',
       'string.min': 'Password must be at least 8 characters long',

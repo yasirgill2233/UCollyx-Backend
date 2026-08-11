@@ -6,8 +6,8 @@ const createChannelSchema = Joi.object({
     .max(50)
     .trim()
     .required()
-    .pattern(/^[a-zA-Z][a-zA-Z0-9-_]*$/) // Sirf letters, numbers, hyphens (-) aur underscores (_) allowed hain
-    .lowercase() // Slack/Discord ki tarah channels ko lowercase rakhna behtar rehta hai
+    .pattern(/^[a-zA-Z][a-zA-Z0-9-_]*$/)
+    .lowercase()
     .messages({
       'string.empty': 'Channel name cannot be empty',
       'string.min': 'Channel name must be at least 3 characters long',
@@ -19,7 +19,7 @@ const createChannelSchema = Joi.object({
   description: Joi.string()
     .max(250)
     .trim()
-    .allow('', null) // Description optional hai (empty string ya null dono chalenge)
+    .allow('', null)
     .messages({
       'string.max': 'Description cannot exceed 250 characters'
     }),

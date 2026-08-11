@@ -2,7 +2,6 @@ const express = require('express');
 const { Permission, WorkspacePermission } = require('../models');
 const router = express.Router();
 
-// Saari permissions get karne ka endpoint
 router.get('/', async (req, res) => {
   try {
     const permissions = await Permission.findAll();

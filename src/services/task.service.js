@@ -144,23 +144,16 @@ const fetchTodayTaskData = async (userId, workspaceId) => {
   });
 };
 
-// const updateTaskState = async (taskId, status, position) => {
-//   return await Task.update({ status, position }, { where: { id: taskId } });
-// };
-
-// 🚀 UPDATED: Safe handling for sorting positions inside matching status columns
 const updateTaskState = async (taskId, status, position, projectId) => {
-  // 1. Pehle target task ko fetch karein taake uski purani state ka pata chale
+
   const task = await Task.findByPk(taskId);
   if (!task) throw new Error("Task not found");
 
   const oldStatus = task.status;
   const oldPosition = task.position;
 
-  // 2. Agar status change hua hai ya position shuffle hui hai
   if (oldStatus === status) {
     if (oldPosition < position) {
-      // Moving down
       await Task.decrement("position", {
         where: {
           project_id: task.project_id,
@@ -169,7 +162,6 @@ const updateTaskState = async (taskId, status, position, projectId) => {
         },
       });
     } else if (oldPosition > position) {
-      // Moving up
       await Task.increment("position", {
         where: {
           project_id: task.project_id,
@@ -179,7 +171,6 @@ const updateTaskState = async (taskId, status, position, projectId) => {
       });
     }
   } else {
-    // Status badal gaya: Purane column ke bache hue cards ko shift-up karein
     await Task.decrement("position", {
       where: {
         project_id: task.project_id,
@@ -187,8 +178,6 @@ const updateTaskState = async (taskId, status, position, projectId) => {
         position: { [Op.gt]: oldPosition },
       },
     });
-
-    // Naye column ke cards ko shift-down karein space banane ke liye
     await Task.increment("position", {
       where: {
         project_id: task.project_id,
@@ -198,7 +187,6 @@ const updateTaskState = async (taskId, status, position, projectId) => {
     });
   }
 
-  // 3. Final target position save karein
   task.status = status;
   task.position = position;
   await task.save();
@@ -351,7 +339,6 @@ const assignEpicToTask = async (taskId, epicId) => {
   const task = await Task.findByPk(taskId);
   if (!task) throw new Error("Task not found");
 
-  // task.id = epicId;
   task.parent_id = epicId;
   await task.save();
 

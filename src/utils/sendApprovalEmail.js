@@ -1,8 +1,5 @@
 const transporter = require('../config/mailer');
 
-/**
- * Send Workspace Join Approval Email
- */
 const sendApprovalEmail = async (options) => {
     const mailOptions = {
         from: `UCollyx Support <${process.env.EMAIL_USER}>`,

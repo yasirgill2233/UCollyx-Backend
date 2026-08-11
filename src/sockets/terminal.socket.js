@@ -168,7 +168,6 @@ module.exports = (io, socket) => {
     }
   });
 
-  // 🎯 CRITICAL SYSTEM HARD CLEANUP ON CONNECTION DROP
   socket.on("disconnect", () => {
     // 1. Kill isolated Docker shell process smoothly
     if (socket.ptyProcess) {
@@ -180,8 +179,6 @@ module.exports = (io, socket) => {
     const pId = socket.currentProject;
     if (pId && activeFolderUsers[pId]?.[socket.id]) {
       delete activeFolderUsers[pId][socket.id];
-
-      // If project room gets empty, close file tree chokidar system
       if (Object.keys(activeFolderUsers[pId]).length === 0) {
         if (activeProjectWatchers[pId]) {
           activeProjectWatchers[pId].close();

@@ -13,17 +13,16 @@ const getMembersByWorkspaceId = async (workspaceId) => {
         attributes: ["id", "full_name", "email", "status"]
       }
     ],
-    order: [["joined_at", "DESC"]] // Newest members top par aayenge
+    order: [["joined_at", "DESC"]]
   });
 };
 
-// 1. Fetch All Workspaces with dynamic metrics and joins
 const getAllOrganizations = async (filters) => {
   const { searchTerm, status } = filters;
   let whereClause = {};
 
   if (status && status !== "All") {
-    whereClause.status = status.toLowerCase(); // DB side lowercase handle karega ('active', 'suspended')
+    whereClause.status = status.toLowerCase();
   }
 
   if (searchTerm) {
@@ -37,7 +36,6 @@ const getAllOrganizations = async (filters) => {
     ],
     attributes: {
       include: [
-        // Subqueries to fetch active database counts dynamically
         [
           sequelize.literal(`(SELECT COUNT(*) FROM workspace_members WHERE workspace_members.workspace_id = Workspace.id)`),
           "totalUsers"
@@ -52,17 +50,14 @@ const getAllOrganizations = async (filters) => {
   });
 };
 
-// 2. Transaction based safe Workspace creation
 const createOrganization = async (orgData) => {
   const transaction = await sequelize.transaction();
   try {
-    // 1. Check if the admin user exists in users table
     const owner = await User.findOne({ where: { email: orgData.adminEmail } });
     if (!owner) throw new Error("Admin email user not found in database.");
 
     const slug = orgData.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-    // 2. Insert into workspaces table
     const newWorkspace = await Workspace.create({
       name: orgData.name,
       slug: slug,
@@ -71,7 +66,6 @@ const createOrganization = async (orgData) => {
       timezone: "UTC"
     }, { transaction });
 
-    // 3. Insert into tenants table
     const randomOrgId = `ORG-${Math.floor(Math.random() * 900) + 100}`;
     await Tenant.create({
       id: randomOrgId,
@@ -89,7 +83,6 @@ const createOrganization = async (orgData) => {
   }
 };
 
-// 3. Status Updation (Active / Suspend / Reactivate)
 const updateStatus = async (workspaceId, status) => {
   const workspace = await Workspace.findByPk(workspaceId);
   if (!workspace) throw new Error("Workspace record not found");
@@ -98,7 +91,6 @@ const updateStatus = async (workspaceId, status) => {
   return await workspace.save();
 };
 
-// Direct Named Functions Export
 module.exports = {
   getAllOrganizations,
   createOrganization,

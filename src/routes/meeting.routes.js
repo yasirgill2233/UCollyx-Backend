@@ -5,7 +5,6 @@ const meetingController = require('../controllers/meeting.controller');
 const audiomeetingController = require('../controllers/audiomeeting.controller');
 const { protect } = require('../middleware/auth.middleware');
 
-// Jab meeting end ho, to frontend ye API call kray ga
 router.post('/finalize/', protect, upload.single('audio'), audiomeetingController.finalizeMeetingController);
 router.post('/finalize/:messageId', protect, upload.single('audio'), meetingController.finalizeMeeting);
 router.post('/create', protect, meetingController.createMeeting);
