@@ -10,7 +10,7 @@ const sendInviteEmail = async (
   const inviteLink = `${process.env.FRONTEND_URL}/join-space?token=${inviteCode}`;
 
   const mailOptions = {
-    from: `"UCollyx" <${process.env.EMAIL_USER}>`,
+    from: `"UCollyx" <${process.env.EMAIL_USER}>`, 
     to: toEmail,
     subject: `You've been invited to join ${workspaceName} on UCollyx`,
     html: `
