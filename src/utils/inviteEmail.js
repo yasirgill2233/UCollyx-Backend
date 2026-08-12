@@ -7,7 +7,7 @@ const sendInviteEmail = async (
   role,
   inviteCode,
 ) => {
-  const inviteLink = `${process.env.FRONTEND_URL}/join-space?token=${inviteCode}`;
+  const inviteLink = `${process.env.EMAIL_URL}/join-space?token=${inviteCode}`;
 
   const mailOptions = {
     from: `"UCollyx" <${process.env.EMAIL_USER}>`, 
