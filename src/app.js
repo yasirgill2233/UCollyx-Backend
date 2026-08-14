@@ -3,6 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const path = require("path");
+const fs = require("fs-extra");
 const Groq = require("groq-sdk");
 
 const authRoutes = require("./routes/auth.routes");
@@ -130,6 +131,39 @@ app.post("/api/ai/generate", async (req, res) => {
       success: false,
       error: "AI service se connect karne mein issue aaya.",
     });
+  }
+});
+
+// Light API to read last N lines of logs
+app.get('/api/activity-matrix', (req, res) => {
+  const logFilePath = path.join(__dirname, '../logs/overall-activity.log');
+
+  if (!fs.existsSync(logFilePath)) {
+    return res.json([]);
+  }
+
+  try {
+    const fileData = fs.readFileSync(logFilePath, 'utf8');
+
+    const parsedLogs = fileData
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+      .map((line) => {
+        try {
+          return JSON.parse(line);
+        } catch (e) {
+          return null;
+        }
+      })
+      .filter(Boolean)
+      .reverse() // Latest logs pehle
+      .slice(0, 10); // Recent 10 entries
+
+      console.log(parsedLogs)
+    res.json(parsedLogs);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to read log activity' });
   }
 });
 

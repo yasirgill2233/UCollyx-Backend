@@ -19,6 +19,7 @@ const bcrypt = require("bcryptjs");
 const sendInviteEmail = require("../utils/inviteEmail");
 const { request } = require("http");
 const { sendApprovalEmail } = require("../utils/sendApprovalEmail");
+const { mainLogger } = require("../utils/logs/logger");
 
 const getUserWorkspaces = async (userId) => {
   const memberships = await WorkspaceMember.findAll({
@@ -218,6 +219,7 @@ const createWorkspace = async (data, ownerId) => {
     //   );
     // }
 
+    mainLogger.info(`Workspace created successfully.`, { email: workspace?.name });
     await transaction.commit();
     return workspace;
   } catch (error) {

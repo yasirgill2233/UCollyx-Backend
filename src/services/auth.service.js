@@ -10,6 +10,7 @@ const {
 const sendEmail = require("../utils/email");
 
 const { OAuth2Client } = require("google-auth-library");
+const { mainLogger } = require("../utils/logs/logger");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const registerUser = async (userData) => {
@@ -33,9 +34,7 @@ const registerUser = async (userData) => {
       status: "pending",
     });
 
-    const otpCode = Math.floor(
-      100000 + Math.random() * 900000
-    ).toString();
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     const expiresAt = new Date(Date.now() + 40 * 1000);
 
@@ -53,30 +52,31 @@ const registerUser = async (userData) => {
       otp: otpCode,
     });
 
+    mainLogger.info(`Real Email sent to ${newUser.email}`, { email: newUser.email });
     console.log(`Real Email sent to ${newUser.email}`);
 
     return newUser;
-
   } catch (err) {
-
+    mainLogger.error("error occurred while registering user.", { email });
     console.error("FULL ERROR:", err);
 
-  if (newUser) {
-    await VerificationCode.destroy({
-      where: { user_id: newUser.id },
-    });
+    if (newUser) {
+      await VerificationCode.destroy({
+        where: { user_id: newUser.id },
+      });
 
-    await User.destroy({
-      where: { id: newUser.id },
-    });
-  }
+      await User.destroy({
+        where: { id: newUser.id },
+      });
+    }
 
-  throw err;
+    throw err;
   }
 };
 
 const verifyEmail = async (email, code) => {
   const user = await User.findOne({ where: { email } });
+  mainLogger.info(`attempting to verify email`, { email });
   if (!user) throw new Error("User not found");
 
   const record = await VerificationCode.findOne({
@@ -91,6 +91,7 @@ const verifyEmail = async (email, code) => {
   if (!record) throw new Error("Invalid or expired OTP");
 
   if (new Date() > record.expires_at) {
+    mainLogger.error("OTP has expired.", { email: user.email });
     throw new Error("OTP has expired");
   }
 
@@ -112,7 +113,7 @@ const loginUser = async (email, password) => {
     return {
       user: {
         id: 0,
-        name: "System Overlord",
+        full_name: "Super Admin",
         email: email,
         role: "super_admin",
         workspaces: [],
@@ -136,34 +137,45 @@ const loginUser = async (email, password) => {
     ],
   });
 
-  if (user?.Workspaces[0] && user?.Workspaces[0]?.status === "suspended") throw new Error("Workspace is suspended");
-  
+  if (user?.Workspaces[0] && user?.Workspaces[0]?.status === "suspended")
+    throw new Error("Workspace is suspended");
+
   if (!user) throw new Error("Invalid email or password");
 
-  if(user?.status === 'pending'){
-    throw new Error("Your status is pending, verify through otp")
-  } else if(user?.status === 'rejected'){
-    throw new Error("Your request is rejecetd")
-  } else if(user?.status === 'suspended'){
-    throw new Error("Your are suspended")
-  } else if(user?.status === 'Disabled'){
-    throw new Error("Your are Disabled, and cannot have access")
-  } else if(user?.status !== 'active'){
-    throw new Error("Your status is not active")
-  } 
+  if (user?.status === "pending") {
+    mainLogger.error("status is pending, ask him to verify through otp", {email});
+    throw new Error("Your status is pending, verify through otp");
+  } else if (user?.status === "rejected") {
+    mainLogger.error("request is rejecetd", {email});
+    throw new Error("Your request is rejecetd");
+  } else if (user?.status === "suspended") {
+    mainLogger.error("is suspended", {email});
+    throw new Error("Your are suspended");
+  } else if (user?.status === "Disabled") {
+    mainLogger.error("is disabled, and cannot have access", {email});
+    throw new Error("Your are disabled, and cannot have access");
+  } else if (user?.status !== "active") {
+    mainLogger.error("is not active, and cannot have access", {email});
+    throw new Error("Your status is not active");
+  }
 
   const userRequest = await JoinRequest.findOne({
     where: { user_id: user.id },
     order: [["created_at", "DESC"]],
   });
 
-
   if (!user.is_verified) {
+    mainLogger.error("attempted to login without verifying email.", { email });
     throw new Error("Please verify your email first");
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new Error("Invalid email or password");
+  if (!isMatch) {
+    mainLogger.error("Someone attempted to login with invalid credentials.");
+    throw new Error("Invalid email or password");
+  }
+
+  mainLogger.info(`attempting to login at ${new Date().toISOString()}`, { email });
 
   await user.update({ last_login: new Date() });
 
@@ -191,6 +203,8 @@ const loginUser = async (email, password) => {
     { expiresIn: process.env.JWT_EXPIRES_IN },
   );
 
+  mainLogger.info(`logged in successfully at ${new Date().toISOString()}`, { email });
+
   return {
     user: {
       ...userStats,
@@ -217,7 +231,6 @@ const handleGoogleUser = async (googleData) => {
       password: "SOCIAL_LOGIN_USER_PENDING",
     });
   } else if (user.password === "SOCIAL_LOGIN_USER_PENDING") {
-
     isNewUser = true;
   }
 
