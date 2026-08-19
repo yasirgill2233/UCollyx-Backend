@@ -90,8 +90,6 @@ app.use("/api/permissions", permissionRoutes);
 app.use("/api/organizations", organizationRoute);
 
 app.post("/api/ai/generate", async (req, res) => {
-
-  console.log("Hello Hello::",req)
   try {
     const { prompt } = req.body;
 
@@ -102,7 +100,7 @@ app.post("/api/ai/generate", async (req, res) => {
       });
     }
 
-    // Call Groq Llama 3 Model
+    // Call Groq Model
     const completion = await groq.chat.completions.create({
       messages: [
         {
@@ -115,8 +113,8 @@ app.post("/api/ai/generate", async (req, res) => {
           content: prompt,
         },
       ],
-      // Llama 3.3 70B Fast & Smart Model
-      model: "llama-3.1-70b-versatile",
+      // Updated active model string
+      model: "openai/gpt-oss-120b",
       temperature: 0.6,
     });
 
