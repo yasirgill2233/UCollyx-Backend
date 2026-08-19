@@ -25,3 +25,60 @@
 {"email":"Apna Startup12","level":"info","message":"Workspace created successfully.","service":"ucollyx-backend","timestamp":"2026-08-14 13:28:42"}
 {"email":"hllomr.747819@gmail.com","level":"info","message":"attempting to login at 2026-08-14T09:45:16.796Z","service":"ucollyx-backend","timestamp":"2026-08-14 14:45:16"}
 {"email":"hllomr.747819@gmail.com","level":"info","message":"logged in successfully at 2026-08-14T09:45:16.850Z","service":"ucollyx-backend","timestamp":"2026-08-14 14:45:16"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"attempting to login at 2026-08-14T12:18:29.235Z","service":"ucollyx-backend","timestamp":"2026-08-14 17:18:29"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"logged in successfully at 2026-08-14T12:18:29.309Z","service":"ucollyx-backend","timestamp":"2026-08-14 17:18:29"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"Real Email sent to yasirgill3637@gmail.com","service":"ucollyx-backend","timestamp":"2026-08-15 09:51:31"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"attempting to verify email","service":"ucollyx-backend","timestamp":"2026-08-15 09:52:06"}
+{"email":"yasirgill3637@gmail.com","level":"error","message":"OTP has expired.","service":"ucollyx-backend","timestamp":"2026-08-15 09:52:06"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"attempting to verify email","service":"ucollyx-backend","timestamp":"2026-08-15 09:52:09"}
+{"email":"yasirgill3637@gmail.com","level":"error","message":"OTP has expired.","service":"ucollyx-backend","timestamp":"2026-08-15 09:52:09"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"attempting to verify email","service":"ucollyx-backend","timestamp":"2026-08-15 09:52:11"}
+{"email":"yasirgill3637@gmail.com","level":"error","message":"OTP has expired.","service":"ucollyx-backend","timestamp":"2026-08-15 09:52:11"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"attempting to verify email","service":"ucollyx-backend","timestamp":"2026-08-15 09:52:12"}
+{"email":"yasirgill3637@gmail.com","level":"error","message":"OTP has expired.","service":"ucollyx-backend","timestamp":"2026-08-15 09:52:12"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"attempting to verify email","service":"ucollyx-backend","timestamp":"2026-08-15 09:52:53"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"attempting to login at 2026-08-15T04:53:03.573Z","service":"ucollyx-backend","timestamp":"2026-08-15 09:53:03"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"logged in successfully at 2026-08-15T04:53:03.618Z","service":"ucollyx-backend","timestamp":"2026-08-15 09:53:03"}
+{"email":"Den Soul","level":"info","message":"Workspace created successfully.","service":"ucollyx-backend","timestamp":"2026-08-15 09:55:49"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"attempting to login at 2026-08-15T04:59:12.301Z","service":"ucollyx-backend","timestamp":"2026-08-15 09:59:12"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"logged in successfully at 2026-08-15T04:59:12.331Z","service":"ucollyx-backend","timestamp":"2026-08-15 09:59:12"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"attempting to login at 2026-08-15T07:52:03.742Z","service":"ucollyx-backend","timestamp":"2026-08-15 12:52:03"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"logged in successfully at 2026-08-15T07:52:03.759Z","service":"ucollyx-backend","timestamp":"2026-08-15 12:52:03"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"attempting to login at 2026-08-16T05:53:21.016Z","service":"ucollyx-backend","timestamp":"2026-08-16 10:53:21"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"logged in successfully at 2026-08-16T05:53:21.141Z","service":"ucollyx-backend","timestamp":"2026-08-16 10:53:21"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"attempting to login at 2026-08-16T06:15:41.062Z","service":"ucollyx-backend","timestamp":"2026-08-16 11:15:41"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"logged in successfully at 2026-08-16T06:15:41.078Z","service":"ucollyx-backend","timestamp":"2026-08-16 11:15:41"}
+{"level":"error","message":"Someone attempted to login with invalid credentials.","service":"ucollyx-backend","timestamp":"2026-08-16 16:26:04"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"attempting to login at 2026-08-16T11:26:11.946Z","service":"ucollyx-backend","timestamp":"2026-08-16 16:26:11"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"logged in successfully at 2026-08-16T11:26:12.088Z","service":"ucollyx-backend","timestamp":"2026-08-16 16:26:12"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"attempting to login at 2026-08-16T11:30:43.509Z","service":"ucollyx-backend","timestamp":"2026-08-16 16:30:43"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"logged in successfully at 2026-08-16T11:30:43.530Z","service":"ucollyx-backend","timestamp":"2026-08-16 16:30:43"}
+{"level":"error","message":"Someone attempted to login with invalid credentials.","service":"ucollyx-backend","timestamp":"2026-08-16 16:31:20"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"attempting to login at 2026-08-16T11:43:50.803Z","service":"ucollyx-backend","timestamp":"2026-08-16 16:43:50"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"logged in successfully at 2026-08-16T11:43:50.823Z","service":"ucollyx-backend","timestamp":"2026-08-16 16:43:50"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"attempting to login at 2026-08-16T11:46:22.800Z","service":"ucollyx-backend","timestamp":"2026-08-16 16:46:22"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"logged in successfully at 2026-08-16T11:46:22.821Z","service":"ucollyx-backend","timestamp":"2026-08-16 16:46:22"}
+{"email":"yasirsaleem11803@gmail.com","level":"info","message":"Real Email sent to yasirsaleem11803@gmail.com","service":"ucollyx-backend","timestamp":"2026-08-16 16:54:25"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"attempting to login at 2026-08-17T08:47:55.652Z","service":"ucollyx-backend","timestamp":"2026-08-17 13:47:55"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"logged in successfully at 2026-08-17T08:47:55.755Z","service":"ucollyx-backend","timestamp":"2026-08-17 13:47:55"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"Real Email sent to yasirgill3637@gmail.com","service":"ucollyx-backend","timestamp":"2026-08-17 13:53:28"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"attempting to verify email","service":"ucollyx-backend","timestamp":"2026-08-17 13:54:48"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"attempting to login at 2026-08-17T08:55:00.220Z","service":"ucollyx-backend","timestamp":"2026-08-17 13:55:00"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"logged in successfully at 2026-08-17T08:55:00.245Z","service":"ucollyx-backend","timestamp":"2026-08-17 13:55:00"}
+{"email":"Acme Development Group","level":"info","message":"Workspace created successfully.","service":"ucollyx-backend","timestamp":"2026-08-17 14:09:04"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"attempting to login at 2026-08-17T09:09:45.185Z","service":"ucollyx-backend","timestamp":"2026-08-17 14:09:45"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"logged in successfully at 2026-08-17T09:09:45.216Z","service":"ucollyx-backend","timestamp":"2026-08-17 14:09:45"}
+{"email":"yasirgill678@gmail.com","level":"info","message":"Real Email sent to yasirgill678@gmail.com","service":"ucollyx-backend","timestamp":"2026-08-17 14:11:06"}
+{"email":"yasirgill678@gmail.com","level":"info","message":"attempting to verify email","service":"ucollyx-backend","timestamp":"2026-08-17 14:11:35"}
+{"email":"yasirgill678@gmail.com","level":"info","message":"attempting to login at 2026-08-17T09:11:45.002Z","service":"ucollyx-backend","timestamp":"2026-08-17 14:11:45"}
+{"email":"yasirgill678@gmail.com","level":"info","message":"logged in successfully at 2026-08-17T09:11:45.032Z","service":"ucollyx-backend","timestamp":"2026-08-17 14:11:45"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"attempting to login at 2026-08-18T05:28:09.736Z","service":"ucollyx-backend","timestamp":"2026-08-18 10:28:09"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"logged in successfully at 2026-08-18T05:28:09.875Z","service":"ucollyx-backend","timestamp":"2026-08-18 10:28:09"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"attempting to login at 2026-08-18T05:32:47.398Z","service":"ucollyx-backend","timestamp":"2026-08-18 10:32:47"}
+{"email":"yasirgill3637@gmail.com","level":"info","message":"logged in successfully at 2026-08-18T05:32:47.422Z","service":"ucollyx-backend","timestamp":"2026-08-18 10:32:47"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"attempting to login at 2026-08-18T05:33:02.912Z","service":"ucollyx-backend","timestamp":"2026-08-18 10:33:02"}
+{"email":"yasirsaleem1183@gmail.com","level":"info","message":"logged in successfully at 2026-08-18T05:33:02.932Z","service":"ucollyx-backend","timestamp":"2026-08-18 10:33:02"}
+{"email":"hllomr.747819@gmail.com","level":"info","message":"attempting to login at 2026-08-18T05:33:27.906Z","service":"ucollyx-backend","timestamp":"2026-08-18 10:33:27"}
+{"email":"hllomr.747819@gmail.com","level":"info","message":"logged in successfully at 2026-08-18T05:33:27.927Z","service":"ucollyx-backend","timestamp":"2026-08-18 10:33:27"}
+{"email":"hllomr.747819@gmail.com","level":"info","message":"attempting to login at 2026-08-19T08:48:15.047Z","service":"ucollyx-backend","timestamp":"2026-08-19 13:48:15"}
+{"email":"hllomr.747819@gmail.com","level":"info","message":"logged in successfully at 2026-08-19T08:48:15.164Z","service":"ucollyx-backend","timestamp":"2026-08-19 13:48:15"}

@@ -12,3 +12,9 @@
 {"email":"hllomr.747819@gmail.com","level":"error","message":"is Disabled, and cannot have access","service":"ucollyx-backend","timestamp":"2026-08-14 12:42:19"}
 {"email":"hllomr.747819@gmail.com","level":"error","message":"is disabled, and cannot have access","service":"ucollyx-backend","timestamp":"2026-08-14 12:47:42"}
 {"email":"yasirgill678@gmail.com","level":"error","message":"status is pending, ask him to verify through otp","service":"ucollyx-backend","timestamp":"2026-08-14 13:09:27"}
+{"email":"yasirgill3637@gmail.com","level":"error","message":"OTP has expired.","service":"ucollyx-backend","timestamp":"2026-08-15 09:52:06"}
+{"email":"yasirgill3637@gmail.com","level":"error","message":"OTP has expired.","service":"ucollyx-backend","timestamp":"2026-08-15 09:52:09"}
+{"email":"yasirgill3637@gmail.com","level":"error","message":"OTP has expired.","service":"ucollyx-backend","timestamp":"2026-08-15 09:52:11"}
+{"email":"yasirgill3637@gmail.com","level":"error","message":"OTP has expired.","service":"ucollyx-backend","timestamp":"2026-08-15 09:52:12"}
+{"level":"error","message":"Someone attempted to login with invalid credentials.","service":"ucollyx-backend","timestamp":"2026-08-16 16:26:04"}
+{"level":"error","message":"Someone attempted to login with invalid credentials.","service":"ucollyx-backend","timestamp":"2026-08-16 16:31:20"}

@@ -67,9 +67,7 @@ const joinWorkspace = async (req, res) => {
     try {
         const { inviteCode, workspaceId, type, role } = req.body;
         const userId = req.user.id;
-
         console.log(userId, inviteCode, workspaceId, type)
-
         if (type === 'code') {
             const member = await workspaceService.joinByInviteCode(userId, inviteCode, role);
             return res.status(200).json({ success: true, message: "Joined successfully", data: member });

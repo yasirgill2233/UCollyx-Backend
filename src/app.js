@@ -90,6 +90,8 @@ app.use("/api/permissions", permissionRoutes);
 app.use("/api/organizations", organizationRoute);
 
 app.post("/api/ai/generate", async (req, res) => {
+
+  console.log("Hello Hello::",req)
   try {
     const { prompt } = req.body;
 
@@ -114,7 +116,7 @@ app.post("/api/ai/generate", async (req, res) => {
         },
       ],
       // Llama 3.3 70B Fast & Smart Model
-      model: "llama-3.3-70b-versatile",
+      model: "llama-3.1-70b-versatile",
       temperature: 0.6,
     });
 
