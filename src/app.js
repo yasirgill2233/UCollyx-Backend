@@ -134,20 +134,80 @@ app.post("/api/ai/generate", async (req, res) => {
   }
 });
 
+app.post("/api/ai/vibe-edit", async (req, res) => {
+  try {
+    const { prompt, activeFile, codeContext, fileTree, intent } = req.body;
+
+    if (!prompt) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Prompt is required" });
+    }
+
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      return res
+        .status(500)
+        .json({ success: false, error: "GROQ_API_KEY missing on server" });
+    }
+
+    const groq = new Groq({ apiKey });
+
+    // System instruction tailored for Vibe Coding
+    const vibeSystemPrompt = `You are the lead Vibe AI Engine for UCollyx Cloud IDE.
+Your job is to analyze developer prompts, project file tree, and code context to generate high-quality code.
+
+CURRENT STATE:
+- Active File: ${activeFile || "None"}
+- Workspace Context: ${JSON.stringify(fileTree || [])}
+
+RULES:
+1. Always return clean, production-ready code.
+2. If the user asks to modify an existing file, provide the modified code cleanly without conversational filler unless explaining.
+3. Keep response structured in markdown blocks with filename comments if multiple files are touched.`;
+
+    const completion = await groq.chat.completions.create({
+      messages: [
+        { role: "system", content: vibeSystemPrompt },
+        {
+          role: "user",
+          content: `Selected Code Context:\n\`\`\`\n${codeContext || "No active selection"}\n\`\`\`\n\nUser Vibe Request:\n${prompt}`,
+        },
+      ],
+      // August 2026 Active Production Model
+      model: "openai/gpt-oss-120b",
+      temperature: 0.3, // Lower temperature for more accurate code generation
+    });
+
+    const result = completion.choices[0]?.message?.content || "";
+
+    return res.json({
+      success: true,
+      vibeOutput: result,
+    });
+  } catch (error) {
+    console.error("Vibe Engine Error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Failed to process Vibe Request",
+    });
+  }
+});
+
 // Light API to read last N lines of logs
-app.get('/api/activity-matrix', (req, res) => {
-  const logFilePath = path.join(__dirname, '../logs/overall-activity.log');
+app.get("/api/activity-matrix", (req, res) => {
+  const logFilePath = path.join(__dirname, "../logs/overall-activity.log");
 
   if (!fs.existsSync(logFilePath)) {
     return res.json([]);
   }
 
   try {
-    const fileData = fs.readFileSync(logFilePath, 'utf8');
+    const fileData = fs.readFileSync(logFilePath, "utf8");
 
     const parsedLogs = fileData
       .trim()
-      .split('\n')
+      .split("\n")
       .filter(Boolean)
       .map((line) => {
         try {
@@ -160,10 +220,10 @@ app.get('/api/activity-matrix', (req, res) => {
       .reverse() // Latest logs pehle
       .slice(0, 10); // Recent 10 entries
 
-      console.log(parsedLogs)
+    console.log(parsedLogs);
     res.json(parsedLogs);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to read log activity' });
+    res.status(500).json({ error: "Failed to read log activity" });
   }
 });
 
