@@ -194,7 +194,6 @@ RULES:
   }
 });
 
-// Light API to read last N lines of logs
 app.get("/api/activity-matrix", (req, res) => {
   const logFilePath = path.join(__dirname, "../logs/overall-activity.log");
 
@@ -224,6 +223,48 @@ app.get("/api/activity-matrix", (req, res) => {
     res.json(parsedLogs);
   } catch (err) {
     res.status(500).json({ error: "Failed to read log activity" });
+  }
+});
+
+app.post("/api/vibefiles/save", async (req, res) => {
+  try {
+    const { filePath, content } = req.body;
+
+    if (!filePath || content === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: "filePath aur content required hain.",
+      });
+    }
+
+    let absolutePath = filePath;
+
+    // 🎯 1. Agar path pehle se absolute nahi hai, tabhi base directory join karein
+    if (!path.isAbsolute(filePath)) {
+      absolutePath = path.join(process.cwd(), filePath);
+    } else if (filePath.includes("user_projects")) {
+      // 🎯 2. Agar frontend full system path bhej raha hai jo double attach ho raha tha
+      // Ensure karein ke root path duplication clean ho jaye
+      const relativePart = filePath.substring(filePath.indexOf("user_projects"));
+      absolutePath = path.join(process.cwd(), relativePart);
+    }
+
+    console.log("📁 Final Clean Path to Write:", absolutePath);
+
+    // Write / Overwrite File
+    await fs.writeFile(absolutePath, content, "utf-8");
+
+    return res.json({
+      success: true,
+      message: "File successfully saved on disk!",
+      savedPath: absolutePath,
+    });
+  } catch (error) {
+    console.error("❌ File Save Error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Failed to save file on disk.",
+    });
   }
 });
 
