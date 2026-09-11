@@ -3,8 +3,12 @@ const { Project, Task, Subtask, User } = require('../models');
 const getProjectDashboardData = async (projectId, userId, workpaceId) => {
   console.log("###############",projectId,userId, workpaceId)
   try {
+    const isNumber = !isNaN(projectId) && !isNaN(parseFloat(projectId));
     const projectData = await Project.findOne({
-      where: {id: projectId, workspace_id: workpaceId },
+      where: {
+        workspace_id: workpaceId,
+        [isNumber ? 'id' : 'name']: projectId
+      },
       attributes: ['id', 'name', 'code', 'slug', 'status', 'progress', 'folder_path'],
       include: [
         {
