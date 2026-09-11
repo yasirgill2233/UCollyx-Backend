@@ -4,7 +4,7 @@ const getProjectDashboardData = async (projectId, userId, workpaceId) => {
   console.log("###############",projectId,userId, workpaceId)
   try {
     const projectData = await Project.findOne({
-      where: {name: projectId, workspace_id: workpaceId },
+      where: {id: projectId, workspace_id: workpaceId },
       attributes: ['id', 'name', 'code', 'slug', 'status', 'progress', 'folder_path'],
       include: [
         {
