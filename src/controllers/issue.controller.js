@@ -343,6 +343,8 @@ const issueController = {
 
       const newIssue = await issueService.createIssue(issuePayload);
 
+      console.log("new issue------------",newIssue)
+
       // =========================================================
       // 📡 REAL-TIME DISPATCH: QA BUG DETECTED TO DEVELOPER
       // =========================================================
@@ -357,6 +359,8 @@ const issueController = {
             title: newIssue.title,
             projectName: targetProj ? targetProj.name : "Workspace Context",
             severity: newIssue.severity || "High",
+            module: newIssue.description,
+            env: newIssue.environment,
             message: `New bug spotted: "${newIssue.title}" has been assigned to you.`
           });
           console.log(`📡 [QA Alert Dispatch] Dispatched bug event to target room: ${targetUserRoom}`);
