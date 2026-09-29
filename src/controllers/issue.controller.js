@@ -347,7 +347,7 @@ const issueController = {
 
       // =========================================================
       // 📡 REAL-TIME DISPATCH: QA BUG DETECTED TO DEVELOPER
-      // =========================================================
+      // ========================================================= 
       if (global.io && newIssue && newIssue.assigned_to) {
         try {
           // Project name nikalne ke liye query karein
